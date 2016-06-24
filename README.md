@@ -1,7 +1,7 @@
 ![ThingPlug logo](https://github.com/SKT-ThingPlug/thingplug-starter-kit/raw/master/images/thingplug--onem2m-logo.png)
-# SKT ThingPlug oneM2M Starter Kit
-본 Starter Kit은 SKT의 ThingPlug에서 제공하는 IoT 국제 표준인 oneM2M API를 이용하여 IoT 서비스를 제작하는 가장 기초적인 방법을 구현해둔 프로젝트 입니다.
-본 프로젝트를 통하여 SKT의 ThingPlug oneM2M API를 활용하는 방법을 쉽게 이해하고, 다양한 IoT 서비스 개발을 Starter Kit에서부터 시작해보세요.
+# SKT ThingPlug LoRa oneM2M Starter Kit
+본 Starter Kit은 SKT의 ThingPlug에서 제공하는 IoT 국제 표준인 oneM2M API를 이용하여 LoRa Device가 없이도 서비스 구현이 가능하도록 제공하는 모듈입니다.
+본 Starter Kit을 통하여 SK Telecom의 ThingPlug LoRa를 활용하는 방법을 쉽게 이해하고, 다양한 LoRa 서비스 개발을 Starter Kit에서부터 시작해보세요.
 
 ## oneM2M의 구성과 Starter Kit의 목적
 oneM2M에서는 역할에 따라 구성원을 다음 세 가지로 구분할 수 있습니다.
@@ -41,7 +41,7 @@ ThingPlug oneM2M을 이용하기 위해서는 ThingPlug 계정이 필요합니�
 코드는 Release된 [Zip파일](https://github.com/SKT-ThingPlug/thingplug-starter-kit/archive/master.zip)을 다운 받아서 임의에 폴더에 압축을 해제하세요. 또는 아래 명령어를 이용하여 github의 master 버전을 clone해도 됩니다.
 
 ```
-git clone https://github.com/SKT-ThingPlug/thingplug-starter-kit.git
+git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 ```
 
 복사된 폴더 안을 살펴보면 다음과 같은 주요파일이 있습니다.

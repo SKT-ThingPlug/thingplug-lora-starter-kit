@@ -46,11 +46,11 @@ git clone https://github.com/SKT-ThingPlug/thingplug-starter-kit.git
 
 복사된 폴더 안을 살펴보면 다음과 같은 주요파일이 있습니다.
 
-- `device.js` : 실제 IoT Device에서 구동이 가능한 코드 입니다. Node.js로 구현되어 있어 Node.js가 실행 가능한 컴퓨터에서 실행가능하며 [BeegleBone Black](http://beagleboard.org/black) 같이 Node.js를 구동할 수 있는 IoT Device에서 직접 실행이 가능합니다.
-- `application.js` : `device.js`에서 ThingPlug로 전송한 데이터를 이용하는 주체로써 사용자와의 접점으로 데이터를 사용자에게 보여주거나 사용자로부터 어떠한 명령을 받아 ThingPlug 서버를 통해 실제 device를 제어하기도 합니다.
+- `device_mqtt.js` : 실제 IoT Device에서 구동이 가능한 코드 입니다. Node.js로 구현되어 있어 Node.js가 실행 가능한 컴퓨터에서 실행가능하며 [BeegleBone Black](http://beagleboard.org/black) 같이 Node.js를 구동할 수 있는 IoT Device에서 직접 실행이 가능합니다. 해당 js파일은 mqtt방식의 프로토콜을 적용한 버전입니다
+- `device_http.js` : 해당 파일은 http 버전으로 device.js파일을 만든것입니다.
 - `application_web.js` : Express.js를 사용한 Web API 서버로 Sample Web Application에서 호출하는 backend 서버의 역할을 합니다. `device.js`에서 ThingPlug로 전송한 데이터를 사용자에게 보여주거나 웹페이지로부터 명령을 받아 ThingPlug 서버를 통해 실제 device를 제어하기도 합니다.
-- `lib/` : ThingPlug Open API와 MQTT 채널 관리에 필요한 공통 라이브러리로서 실제 디바이스 및 애플리케이션 개발 시 참조하는 목록입니다.
 - `public/` : Sample Web Application의 html, css, javascript 등 정적 파일 목록입니다.
+- `notification/` : trigger 발생시 문제를 notify하기 위한 Mail관련 파일이 있습니다..
 - `config.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-starter-kit#configjs-수정)
 
 
@@ -72,12 +72,14 @@ CSE_ID는 디바이스를 oneM2M에서 구분하기 위해 주민번호처럼 �
 ```javascript
 module.exports = {
   uKey : 'USER_KEY_FROM_SANDBOX.SKIOT.COM', // Thingplug(https://sandbox.sktiot.com) 로그인 후, `마이페이지`에 있는 사용자 인증키
-  nodeID : '0.2.481.1.101.01000000000', // Device 구분을 위한 ID  (본 예제에서는 맨 뒷자리를 핸드폰 번호 사용 권장)
-  passCode : '000101', // ThingPlug에 Device등록 시 사용할 Device의 비밀번호 (본 예제에서는 생년월일 사용 권장)
+  nodeID : 'LTID', // Device 구분을 위한 ID
+  passCode : '000101', // ThingPlug에 Device등록 시 사용할 Device의 비밀번호
   appID : 'myApplication', //Application의 구분을 위한 ID
-  containerName:'myContainer', // starter kit에서 생성하고 사용할 container 이름 (임의지정)
-  mgmtCmdPrefix : 'myMGMT', // starter kit에서 생성하고 사용할 제어 명령 이름 접두사 (임의지정)
-  cmdType : 'senser_1' // starter kit에서 사용할 제어 타입 (임의지정)
+  containerName:'LoRa', // starter kit에서 생성하고 사용할 container 이름 (임의지정)
+  DevReset : 'DevReset', // starter kit에서 생성하고 사용할 제어 명령 이름 접두사 (임의지정)
+  RepPerChange : 'RepPerChange', // starter kit에서 생성하고 사용할 제어 명령 이름 접두사 (임의지정)
+  RepImmediate : 'RepImmediate', // starter kit에서 생성하고 사용할 제어 명령 이름 접두사 (임의지정)
+  cmdType : 'sensor_1' // starter kit에서 사용할 제어 타입 (임의지정)
 };
 ```
 
@@ -93,13 +95,13 @@ node 생성 결과
 2. remoceCSE 생성 요청
 remoteCSE 생성 결과
 다비이스 키 : VGJVMDdzVFl2YTBOZFBIMGlwUDdlZksvbVF5dWExRGNHK2cyaW9zOEY4R215QTU0bW9MSmt3QlZYejJ2VGJCbg==
-content-location: /ThingPlug/remoteCSE-0.2.481.1.101.01012341234
+content-location: /ThingPlug/remoteCSE-LTID
 3. container 생성 요청
 container 생성 결과
-content-location: /ThingPlug/remoteCSE-0.2.481.1.101.01012341234/container-myContainer
+content-location: /ThingPlug/remoteCSE-LTID/container-LoRa
 4. mgmtCmd 생성 요청
 mgmtCmd 생성 결과
-content-location: /ThingPlug/mgmtCmd-myMGMT0.2.481.1.101.01012341234
+content-location: /ThingPlug/mgmtCmd-LTID
 5. content Instance 주기적 생성 시작
 6. 제어 명령 수신 MQTT 연결
 ### mqtt connected ###
@@ -129,23 +131,8 @@ content : 18, resourceID : CI00000000000000710832
 - 필수정보 입력화면에 내용을 해당 내용을 넣어준 후 하단 '저장'버튼을 누르면 ThingPlug에 Device 등록이 완료됩니다.
 
 ## Application 실행
-`node application.js` 명령어로 application을 실행합니다. (Application 실행하기 전에 `device.js`가 동작하는 상태로 유지합니다. 따라서 `device.js` 실행을 종료하지 않고 새로운 terminal(커맨드창)을 열어 실행하세요. 계속 실행이 유지되는 `device.js`와 달리 본 스타트업킷에서는 편의상 `application.js`는 한번 실행 후 종료하도록 되어있습니다.)
+`node application_web.js` 명령어로 application을 실행합니다. (Application 실행하기 전에 `device.js`가 동작하는 상태로 유지합니다. 따라서 `device.js` 실행을 종료하지 않고 새로운 terminal(커맨드창)을 열어 실행하세요. 웹페이지를 확인하시기 위해서는 `http://[SERVER_IP]:3000/dashboard`를 확인해주세요
 
-```
-≫ node application.js
-1. latest contentInstance 조회
-content : 13
-resouceId : CI00000000000000034932
-생성일 : 2015-08-16T13:01:10+09:00
-2. mgmtCmd 제어 요청
-content-location: https://sandbox.sktiot.com:9000/ThingPlug/remoteCSE-000.0000.00000.0000.00000/mgmtCmd-mgmtCmd_1/execInstance-EI00000000000000000517
-resouceId : EI00000000000000000517
-execStatus : 2
-#. execInstance 리소스 조회
-resouceId : EI00000000000000000517
-execStatus : 3
-
-```
 
 실행 후 `device.js`가 실행중인 터미널을 살펴보면 application이 보낸 mgmtCmd에 대한 아래와 같은 MQTT 로그가 보일 것입니다.
 
@@ -171,38 +158,8 @@ extra : request
 ## Web Application 실행
 `node application_web.js` 명령어로 Express.js 서버를 실행합니다. 
 이제 웹 브라우저를 열어서 실행 중인 서버의 IP로 접속하여 Dashboard를 실행합니다.
-가상 센서를 위한 Dashboard는 http://SERVER_IP:3000/dashboard 이며, 
+가상 센서를 위한 Dashboard는 http://[SERVER_IP]:3000/dashboard 이며, 
 가상 센서값을 Dashboard에 표시하기 위해서는 `node device.js` 를 실행하며, 가상으로 에어컨을 제어하여 온도값의 변화를 나타내는 예시입니다. 
-### Intel Edison 보드 지원
-Intel Edison 보드 + Grove Kit 에 대한 샘플 코드를 지원합니다. example 폴더에 관련 파일이 존재합니다.
-Edison 보드 예제를 실행하기 위해서는 필요한 모듈을 추가 설치해야 합니다.
-```
-npm install johnny-five edison-io
-```
-Intel Edison 보드의 센서값을 확인하기 위한 Dashboard는 http://SERVER_IP:3000/dashboard/edison.html 입니다. Intel Edison 보드의 센서값을 Dashboard에 표시하기 위해서는 `node example/edison/device.js` 를 실행해야 합니다.  Intel Edison 보드는 Grove Kit에 버튼, LED, 조도 센서를 부착한 경우에 대한 예제이며, PIN 매핑을 `example/edison/device.js` 파일을 열어 실제 부착한 센서의 PIN 번호로 변경해야 합니다.
-Default PIN 매핑은 하기와 같습니다.
-```
-module.exports = {
-  'board' : 'edison',
-  'sensor' : [
-    {
-      'name' : 'light_1',
-      'category' : 'light',
-      'pin' : 'A0'
-    },
-    {
-      'name' : 'button_1',
-      'category' : 'button',
-      'pin' : 5
-    },
-    {
-      'name' : 'led_1',
-      'category' : 'led',
-      'pin' : 3
-    }
-  ]
-}
-```
 
 
 ## 환영합니다. 당신은 이제 oneM2M IoT입니다.

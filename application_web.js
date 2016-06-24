@@ -10,8 +10,8 @@ var config = require('./config');
 var config_1 = require('./config_1');
 var config_2 = require('./config_2');
 
-var sms = require('./sms/sendsms').request;
-var nodemailer = require('./mail').request;
+var sms = require('./notification/sendsms').request;
+var nodemailer = require('./notification/mail').request;
 
 var colors = require('colors');
 

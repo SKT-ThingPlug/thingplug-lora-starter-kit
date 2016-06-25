@@ -4,7 +4,11 @@
   "description": "SKT의 ThingPlug Starter Kit",
   "scripts": {
     "device": "node device.js",
+<<<<<<< HEAD
     "app": "node application.js"
+=======
+    "app": "node application_web.js"
+>>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
   },
   "keywords": [
     "skt",
@@ -25,6 +29,11 @@
     "body-parser": "latest",
     "async": "latest",
     "underscore": "latest"
+<<<<<<< HEAD
+=======
+	"nodemailer" : "latest"
+	"cs6-promise" : "latest"
+>>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
   },
   "engines": {
     "node": ">=0.10.x"

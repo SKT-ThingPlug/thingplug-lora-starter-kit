@@ -199,6 +199,7 @@ IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
     exe : true,             //장치 제어를 위한 Trigger Attribute (true/false) / (exe == execEnable))
     ext : config.nodeRI     //제어되는 장치의 식별자로 제어하고자 하는 장치의 node 자원 식별자를 명시함 (ext == exeTarget)
   }}
+<<<<<<< HEAD
   }).then(function(result){
 console.log(colors.green('4. mgmtCmd 생성 결과'));	
   if(result.statusCode == 409){
@@ -232,6 +233,9 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
   });
   
 })
+=======
+  });
+>>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
 }).catch(function(err){
   console.log(err);
 });
@@ -243,13 +247,21 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
 
   // HTTP Connect
 var httpres = require('http');
+<<<<<<< HEAD
+=======
+console.log('aaa');
+>>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
 httpres.createServer(function (req, res) {
 	  res.setEncoding('utf8');
       res.on('data', function (chunk) {
         resolve({
           data: chunk
         });
+<<<<<<< HEAD
 			console.log(colors.green('#####################################'));
+=======
+			console.log('ccc');
+>>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
       });
 
 
@@ -327,11 +339,17 @@ var BASE_LUX = 90;
     con : value   //업로드 하는 데이터 (con == content)
   }}
     }).then(function(result){
+<<<<<<< HEAD
 		
       var data = JSON.parse(result.data);
       console.log('content : ' + data.cin.con + ', resourceID : '+data.cin.ri);
     }).catch(function(err){
 		console.log(colors.green('#####################################'));
+=======
+      var data = JSON.parse(result.data);
+      console.log('content : ' + data.cin.con + ', resourceID : '+data.cin.ri);
+    }).catch(function(err){
+>>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
       console.log(err);
     });
       

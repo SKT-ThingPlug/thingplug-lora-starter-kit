@@ -12,7 +12,7 @@ Starter Kit에서는 역할에 따라 구성원을 다음 세 가지로 구분�
 - 디바이스 클라이언트 (Device)
 - oneM2M API를 제공하는 ThingPlug 서버 (ThingPlug)
 
-애플리케이션과 디바이스는 직접적으로 통신하지 않고 각 구성원들은 기본적으로 ThingPlug가 제공하는 oneM2M 표준 기반의 REST API를 통해 oneM2M 서버와 통신을 하게 됩니다. 해당 API를 통해 제공되는 IoT의 공통적인 기능(예, 데이터 저장, 장치 관리, 장치 등록 등)은 디바이스와 애플리케이션의 개발자들이 좀 더 쉽게 IoT 서비스를 개발할 수 있는 환경을 제공합니다.
+애플리케이션과 디바이스는 직접적으로 통신하지 않고 각 구성원들은 기본적으로 ThingPlug가 제공하는 oneM2M 표준 기반의 REST API를 통해 oneM2M 서버와 통신을 하게 됩니다. 해당 API를 통해 제공되는 IoT의 공통적인 기능(예, 데이터 저장, 장치 관리, 장치 등록 등)은 디바이스와 애플리케이션의 개발자들이 좀 더 쉽게 LoRa 서비스를 개발할 수 있는 환경을 제공합니다.
 
 본 Starer Kit이 제공되는 목적은 첫째로는 애플리케이션과 디바이스가 최소한의 IoT 서비스 기능을 할 수 있도록 ThingPlug 서버가 제공하는 API를 활용하는 방법을 익히고, 두번째로는 ThingPlug에서 제공하는 oneM2M을 직접 경험해 봄으로써 oneM2M 표준을 이해하는 것입니다.
 
@@ -50,7 +50,7 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 - `device_http_x.js` : 해당 파일은  device.js파일의 http 버전입니다.
 - `application_web.js` : Express.js를 사용한 Web API 서버로 Sample Web Application에서 호출하는 backend 서버의 역할을 합니다. `device.js`에서 ThingPlug로 전송한 데이터를 사용자에게 보여주거나 웹페이지로부터 명령을 받아 ThingPlug 서버를 통해 실제 device를 제어하기도 합니다.
 - `public/` : Sample Web Application의 html, css, javascript 등 정적 파일 목록입니다.
-- `notification/` : trigger 발생시 문제를 notify하기 위한 Mail관련 파일이 있습니다..
+- `notification/` : trigger 발생시 문제를 notify하기 위한 E-MAIL관련 파일이 있습니다. E-MAIL은 nodemailer를 활용해 전송을 하는 방식을 활용하였으며, 이외에도 다양한 방법을 응용할 수 있습니다.
 - `config.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
 
 > 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
@@ -106,17 +106,23 @@ $ node device
 1. node 생성 요청
 node 생성 결과
 생성 node Resource ID : ND00000000000000000000//(ThingPlug에서 발급받은 값)
+content-location: /APP_EUI/APP_version/node-LTID
+
 2. remoceCSE 생성 요청
 remoteCSE 생성 결과
 다비이스 키 : 64based encoding value==//(ThingPlug에서 발급받은 값)
-content-location: /ThingPlug/remoteCSE-LTID
+content-location: /APP_EUI/APP_version/remoteCSE-LTID
+
 3. container 생성 요청
 container 생성 결과
-content-location: /ThingPlug/remoteCSE-LTID/container-LoRa
+content-location: /APP_EUI/APP_version/remoteCSE-LTID/container-LoRa
+
 4. mgmtCmd 생성 요청
 mgmtCmd 생성 결과
-content-location: /ThingPlug/mgmtCmd-LTID
+content-location: /APP_EUI/APP_version/mgmtCmd-LTID
+
 5. content Instance 주기적 생성 시작
+
 6. 제어 명령 수신 MQTT 연결
 ### mqtt connected ###
 content : 35,72,90 //온도, 습도, 조도 가상값
@@ -183,11 +189,13 @@ EXRA : request 목적
 
 #### Application 하는 일
 
- 구분  | 설명 | HTTP Method
+ 구분  | 설명 | Method
 -------|----|---
-1. Content Instance 조회 | 기록된 Content Instance를 조회합니다. | GET
-2. mgmtCmd execInstance 생성 | Device로 보낼 제어 명령을 oneM2M에게 보냅니다. | POST
-3. mgmtCmd execInstance 조회 | Device로 보낸 제어 명령의 상태를 조회 합니다. | GET
+1. Content Instance 조회 |  가장 최근의 content Instance를 조회합니다. | HTTP GET
+2. mgmtCmd execInstance 생성 | Device로 보낼 제어 명령을 ThingPlug에게 보냅니다. | HTTP POST
+3. mgmtCmd execInstance 조회 | Device로 보낸 제어 명령의 상태를 조회 합니다. | HTTP GET
+4. Google 지도 API | LoRa Device 위치 표시 | Google API
+4. Trigger 설정 | Trigger 발생시 notification | nodemailer API
 
 ## Web Application 실행
 `node application_web.js` 명령어로 Express.js 서버를 실행합니다. 

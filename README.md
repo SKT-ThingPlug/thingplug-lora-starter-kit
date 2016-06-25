@@ -155,6 +155,9 @@ resourceID : CI00000000000000000000//(ThingPlug에서 발급받은 값)
 ## Application 실행
 `node application_web.js` 명령어로 application을 실행합니다. (Application 실행하기 전에 `device.js`가 동작하는 상태로 유지합니다. 따라서 `device.js` 실행을 종료하지 않고 새로운 terminal(커맨드창)을 열어 실행하세요. 웹페이지를 확인하시기 위해서는 `http://[SERVER_IP]:3000/dashboard`를 확인해주세요
 
+해당 web page에서는 device의 위치값을 표시할 수 있고, 디바이스에서 보내온 센서 3종의 값을 보여주며, device에 predefined된 LoRa mgmtCmd를 실행할 수 있고, trigger를 설정해 event 발생시 E-MAIL 등으로 알림을 전송 할 수 있습니다.
+
+
 
 실행 후 `device.js`가 실행중인 터미널을 살펴보면 application이 보낸 mgmtCmd에 대한 아래와 같은 MQTT 로그가 보일 것입니다.
 
@@ -205,8 +208,6 @@ EXRA : request 목적
 해당 application의 실제 동작과 관련된 내용을 수정하기 위해서는 `/public/index.html` 파일에서 웹페이지를 수정하고, `/public/js/app.js`파일에서 실제 동작과 관련된 내용을 수정합니다.
 
 ![web page](https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-lora-starter-kit/master/images/web.png)
-
-해당 web page에서는 device의 위치값을 표시할 수 있고, 디바이스에서 보내온 센서 3종의 값을 표시할 수 있으며, device에 predefined LoRa mgmtCmd를 실행할 수 있으며, trigger를 설정해 event 발생시 E-MAIL 등으로 알림을 전송 할 수 있습니다.
 
 
 ## 환영합니다. 당신은 이제 oneM2M IoT입니다.

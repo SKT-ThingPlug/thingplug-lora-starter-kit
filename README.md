@@ -63,7 +63,7 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 &nbsp; `res.send(config_x);`<br>
 `});`<br>
 부분 변경<br>
-4.  `/public/js/app.js` 의 numofDevice 값 변경<br>
+4.  `/public/js/app.js` 의 `numofDevice` 값 변경<br>
 
 
 
@@ -197,7 +197,7 @@ EXRA : request 목적
 1. Content Instance 조회 |  가장 최근의 content Instance를 조회합니다. | HTTP GET
 2. mgmtCmd execInstance 생성 | Device로 보낼 제어 명령을 ThingPlug에게 보냅니다. | HTTP POST
 3. mgmtCmd execInstance 조회 | Device로 보낸 제어 명령의 상태를 조회 합니다. | HTTP GET
-4. Google 지도 API | LoRa Device 위치 표시 | Google API
+4. Google 지도 API | LoRa Device 위치 표시(현재는 임의값) | Google API
 4. Trigger 설정 | Trigger 발생시 notification | nodemailer API
 
 ## Web Application 실행

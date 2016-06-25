@@ -20,7 +20,7 @@ jQuery(document).ready(function() {
 	
 
 	var period = 1;
-	var Firm_Ver = ['0.1.0', '0.1.0'];
+	var Firm_Ver = [];
 
 	var MAX_DATA = 30;
 	
@@ -52,6 +52,7 @@ jQuery(document).ready(function() {
 		CONTENT : null,
 		RECEIVERS : null
 	};
+
 	
 	var if_sensor = null;
 	var if_if = null;
@@ -139,18 +140,7 @@ jQuery(document).ready(function() {
 	/* end of graph Related Variables */
 	///////////////////////////////////////////////////  
 	
-for(var i=0;i<numofDevice;i++) {
-	$.get('config_'+(i+1).toString(), function(data, status){
-		if(status == 'success'){
-			nodeID.push(data.nodeID);
-		}
-		else {
-			console.log('[Error] /config API return status :'+status);
-			nodeID.push('nodeID_'+'config_'+(i+1).toString());
-		}
-	});
 
-}
 
 	function hextodec(hex) {
 		var final = 0;
@@ -184,7 +174,19 @@ for(var i=0;i<numofDevice;i++) {
 			}
 		});
 	}
-
+	
+	
+	function callnodeID() {
+		for(var i=0;i<numofDevice;i++) {
+			nodeIndex=i;
+			getConfig( function(err,config) {
+				nodeID.push(config.nodeID);	
+				Firm_Ver.push('0.1.0');
+			});
+		}
+		nodeIndex=0;
+	}
+	callnodeID();
 	///////////////////////////////////////////
 	function sendmail(cb) {
 		var url = '/email';

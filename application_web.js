@@ -6,7 +6,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 
-var config = require('./config');
+var config = require('./config_1');
 var config_1 = require('./config_1');
 var config_2 = require('./config_2');
 
@@ -24,13 +24,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/config_1', function(req,res) {
 	config = config_1;
-	//console.log('config_1 ->' + config_1.nodeID);
 	res.send(config_1);
 });
 
 app.get('/config_2', function(req,res) {
 	config = config_2;
-	//console.log('config_2 ->' + config_2.nodeID);
 	res.send(config_2);
 });
 

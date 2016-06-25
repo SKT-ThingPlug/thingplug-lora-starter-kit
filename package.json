@@ -25,9 +25,9 @@
     "express": "^4.2.1",
     "body-parser": "latest",
     "async": "latest",
-    "underscore": "latest"
-	"nodemailer" : "latest"
-	"cs6-promise" : "latest"
+    "underscore": "latest",
+	"nodemailer" : "latest",
+	"es6-promise" : "latest"
   },
   "engines": {
     "node": ">=0.10.x"

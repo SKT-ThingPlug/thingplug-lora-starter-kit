@@ -6,6 +6,8 @@ var httpReq = require('./promise-http').request;
 
 var config = require('./config_2');
 
+
+
 console.log(colors.green('### ThingPlug Device###'));
 if(typeof config == 'undefined') {
   console.log(colors.red('먼저 config.js를 열어 config를 설정하세요. README.md에 Starterkit 실행 방법이 설명되어 있습니다.'));
@@ -16,6 +18,26 @@ if(typeof config == 'undefined') {
 function randomInt (low, high) {
 	return Math.floor(Math.random() * (high - low + 1) + low);
 }
+
+
+
+  // HTTP Connect
+var http = require('http');
+var messages = [
+  'Hello World',
+  'From a basic Node.js server',
+  'Take Luck'];
+http.createServer(function (req, res) {
+  res.setHeader("Content-Type", "text/html");
+  res.writeHead(200);
+  res.write('<html><head><title>Simple HTTP Server</title></head>');
+  res.write('<body>');
+  for (var idx in  messages){
+    res.write('\n<h1>' + messages[idx] + '</h1>');
+  }
+  res.end('\n</body></html>');
+   console.log(colors.yellow('------------'));
+}).listen(1357);
 
 
 // 1. node 생성
@@ -199,14 +221,13 @@ IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
     exe : true,             //장치 제어를 위한 Trigger Attribute (true/false) / (exe == execEnable))
     ext : config.nodeRI     //제어되는 장치의 식별자로 제어하고자 하는 장치의 node 자원 식별자를 명시함 (ext == exeTarget)
   }}
-<<<<<<< HEAD
   }).then(function(result){
 console.log(colors.green('4. mgmtCmd 생성 결과'));	
   if(result.statusCode == 409){
     console.log('이미 생성된 mgmtCmd 입니다.');
   }
   console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
-   console.log(colors.red('#####################################'));
+   //console.log(colors.red('#####################################'));
   // 2. create Subscription
   return httpReq({ 
     options: {
@@ -227,15 +248,12 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
 		enc : {
 			rss:1,
 		},
-		nu : 'http://110.8.21.71:8080/push',
+		nu : 'http://localhost:1357',
 		nct : 2
   }}
   });
   
 })
-=======
-  });
->>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
 }).catch(function(err){
   console.log(err);
 });
@@ -244,30 +262,6 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
 ///////////////
 
 
-
-  // HTTP Connect
-var httpres = require('http');
-<<<<<<< HEAD
-=======
-console.log('aaa');
->>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
-httpres.createServer(function (req, res) {
-	  res.setEncoding('utf8');
-      res.on('data', function (chunk) {
-        resolve({
-          data: chunk
-        });
-<<<<<<< HEAD
-			console.log(colors.green('#####################################'));
-=======
-			console.log('ccc');
->>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
-      });
-
-
-}).on('connection', function(socket) {
-  socket.setTimeout(100000);
-}).listen(8080);
 // httpres.createServer(function (req, res) {
 // console.log('bbb');
 	  // res.setEncoding('utf8');
@@ -339,17 +333,11 @@ var BASE_LUX = 90;
     con : value   //업로드 하는 데이터 (con == content)
   }}
     }).then(function(result){
-<<<<<<< HEAD
 		
       var data = JSON.parse(result.data);
       console.log('content : ' + data.cin.con + ', resourceID : '+data.cin.ri);
     }).catch(function(err){
-		console.log(colors.green('#####################################'));
-=======
-      var data = JSON.parse(result.data);
-      console.log('content : ' + data.cin.con + ', resourceID : '+data.cin.ri);
-    }).catch(function(err){
->>>>>>> c61f6c2f4c1098df19cc1f8f7e14c199e4c0a993
+		console.log(colors.red('#####################################'));
       console.log(err);
     });
       

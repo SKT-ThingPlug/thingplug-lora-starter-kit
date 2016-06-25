@@ -33,7 +33,7 @@ Starter Kit을 실행하기 위해서는 다음과 같은 도구가 설치되어
 
 - [Node.js](https://nodejs.org) : 공식 사이트에서 설치 패키지를 다운받을 수 있습니다.
 
-> 주의!
+> 주의!<br>
 ThingPlug oneM2M을 이용하기 위해서는 ThingPlug 계정이 필요합니다. ThingPlug 회원가입 시 사용할 디바이스 연동 프로토콜을 반드시 HTTP로 선택해야 합니다. HTTP로 선택하지 않고 이미 계정을 만드셨다면 다른 계정을 하나 더 만들어서 진행하세요.
 
 #### 코드 복사
@@ -53,18 +53,17 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 - `notification/` : trigger 발생시 문제를 notify하기 위한 Mail관련 파일이 있습니다..
 - `config.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
 
-> 주의!
-	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.
-	1. config_x.js와 device_x.js파일을 추가 또는 삭제
-	2. config_x.js의 nodeID 및 device_x.js의 `require('./config_x')` 수정
-	3.  application_web.js의
-`var config_x = require('./config_x');
-app.get('/config_x', function(req,res) {
-	config = config_x;
-	res.send(config_x);
-});`
-부분 변경
-4.  `/public/js/app.js` 의 numofDevice 값 변경
+> 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
+	1. config_x.js와 device_x.js파일을 추가 또는 삭제<br>
+	2. config_x.js의 nodeID 및 device_x.js의 `require('./config_x')` 수정<br>
+	3.  application_web.js의<br>
+`var config_x = require('./config_x');`<br>
+`app.get('/config_x', function(req,res) {`<br>
+`	config = config_x;`<br>
+`	res.send(config_x);`<br>
+`});`<br>
+부분 변경<br>
+4.  `/public/js/app.js` 의 numofDevice 값 변경<br>
 
 
 

@@ -59,8 +59,8 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 	3.  application_web.js의<br>
 `var config_x = require('./config_x');`<br>
 `app.get('/config_x', function(req,res) {`<br>
-`	config = config_x;`<br>
-`	res.send(config_x);`<br>
+&nbsp; `config = config_x;`<br>
+&nbsp; `res.send(config_x);`<br>
 `});`<br>
 부분 변경<br>
 4.  `/public/js/app.js` 의 numofDevice 값 변경<br>

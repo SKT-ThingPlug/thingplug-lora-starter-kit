@@ -46,19 +46,34 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 
 복사된 폴더 안을 살펴보면 다음과 같은 주요파일이 있습니다.
 
-- `device_mqtt.js` : 실제 IoT Device에서 구동이 가능한 코드 입니다. Node.js로 구현되어 있어 Node.js가 실행 가능한 컴퓨터에서 실행가능하며 [BeegleBone Black](http://beagleboard.org/black) 같이 Node.js를 구동할 수 있는 IoT Device에서 직접 실행이 가능합니다. 해당 js파일은 mqtt방식의 프로토콜을 적용한 버전입니다
-- `device_http.js` : 해당 파일은 http 버전으로 device.js파일을 만든것입니다.
+- `device_mqtt_x.js` : 실제 IoT Device에서 구동이 가능한 코드 입니다. Node.js로 구현되어 있어 Node.js가 실행 가능한 컴퓨터에서 실행가능하며 [BeegleBone Black](http://beagleboard.org/black) 같이 Node.js를 구동할 수 있는 IoT Device에서 직접 실행이 가능합니다. 해당 js파일은 mqtt방식의 프로토콜을 적용한 버전입니다.
+- `device_http_x.js` : 해당 파일은  device.js파일의 http 버전입니다.
 - `application_web.js` : Express.js를 사용한 Web API 서버로 Sample Web Application에서 호출하는 backend 서버의 역할을 합니다. `device.js`에서 ThingPlug로 전송한 데이터를 사용자에게 보여주거나 웹페이지로부터 명령을 받아 ThingPlug 서버를 통해 실제 device를 제어하기도 합니다.
 - `public/` : Sample Web Application의 html, css, javascript 등 정적 파일 목록입니다.
 - `notification/` : trigger 발생시 문제를 notify하기 위한 Mail관련 파일이 있습니다..
 - `config.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
+
+> 주의!
+	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.
+	1. config_x.js와 device_x.js파일을 추가 또는 삭제
+	2. config_x.js의 nodeID 및 device_x.js의 `require('./config_x')` 수정
+	3.  application_web.js의
+`var config_x = require('./config_x');
+app.get('/config_x', function(req,res) {
+	config = config_x;
+	res.send(config_x);
+});`
+부분 변경
+4.  `/public/js/app.js` 의 numofDevice 값 변경
+
+
 
 
 #### 프로젝트 dependency 설치
 Starter Kit을 통해서 실행하는 device와 application은 Node.js로 구현되어 있으며 실행에 필요한 dependency 정보는 package.json에 기입되어 있습니다. 따라서 위에서 복사한 starter kit 폴더(package.json이 존재하는 폴더)로 이동 후 `npm install` 명령어를 통해 dependency 설치하세요.
 
 ```
-cd thingplug-starter-kit
+cd thingplug-lora-starter-kit
 npm install
 ```
 
@@ -94,7 +109,7 @@ node 생성 결과
 생성 node Resource ID : ND00000000000000000000//(ThingPlug에서 발급받은 값)
 2. remoceCSE 생성 요청
 remoteCSE 생성 결과
-다비이스 키 : VGJVMDdzVFl2YTBOZFBIMGlwUDdlZksvbVF5dWExRGNHK2cyaW9zOEY4R215QTU0bW9MSmt3QlZYejJ2VGJCbg==//(ThingPlug에서 발급받은 값)
+다비이스 키 : 64based encoding value==//(ThingPlug에서 발급받은 값)
 content-location: /ThingPlug/remoteCSE-LTID
 3. container 생성 요청
 container 생성 결과
@@ -165,8 +180,6 @@ EXRA : request 목적
 		else{
 			console.log('Unknown CMD');
 		}
-
-#####################################
 ```
 
 #### Application 하는 일

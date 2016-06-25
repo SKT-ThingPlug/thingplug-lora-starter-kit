@@ -1,4 +1,4 @@
-![ThingPlug logo](https://github.com/SKT-ThingPlug/thingplug-starter-kit/raw/master/images/thingplug--onem2m-logo.png)
+![ThingPlug logo](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit/raw/master/images/thingplug-logo.png)
 # SKT ThingPlug LoRa oneM2M Starter Kit
 본 Starter Kit은 SKT의 ThingPlug에서 제공하는 IoT 국제 표준인 oneM2M API를 이용하여 LoRa서비스 개발 환경을 구축할때 Device가 없이도 서비스 테스트가 가능하도록 제공하는 모듈입니다.
 본 Starter Kit을 통하여 SK Telecom의 ThingPlug LoRa를 활용하는 방법을 쉽게 이해하고, 다양한 LoRa 서비스 개발을 Starter Kit에서부터 시작해보세요.

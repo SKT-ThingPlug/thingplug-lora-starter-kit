@@ -1,0 +1,11 @@
+module.exports = {
+  uKey : 'USER_KEY', // Thingplug로그인 후, `마이페이지`에 있는 사용자 인증키
+  nodeID : 'LTID', // Device 구분을 위한 ID
+  passCode : '000101', // ThingPlug에 Device등록 시 사용할 Device의 비밀번호
+  appID : 'myApplication', //Application의 구분을 위한 ID
+  containerName:'LoRa', // starter kit에서 생성하고 사용할 container 이름 (임의지정)
+  DevReset : 'DevReset', // starter kit에서 생성하고 사용할 제어 명령 이름 접두사 (임의지정)
+  RepPerChange : 'RepPerChange', // starter kit에서 생성하고 사용할 제어 명령 이름 접두사 (임의지정)
+  RepImmediate : 'RepImmediate', // starter kit에서 생성하고 사용할 제어 명령 이름 접두사 (임의지정)
+  cmdType : 'sensor_1' // starter kit에서 사용할 제어 타입 (임의지정)
+};

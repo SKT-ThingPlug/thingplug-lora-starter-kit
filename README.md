@@ -56,8 +56,8 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 > 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
 	1. config_x.js와 device_x.js파일을 추가 또는 삭제(번호는 1번부터 빠짐없이 순차로)<br>
 	2. config_x.js의 `nodeID`수정<br>
-	3.  application_web.js의 `numofDevice`수정<br>
-4.  `/public/js/app.js` 의 `numofDevice` 수정<br>
+	3.  application_web.js의 `numOfDevice`수정<br>
+4.  `/public/js/app.js` 의 `numOfDevice` 수정<br>
 
 
 

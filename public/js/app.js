@@ -29,7 +29,7 @@ jQuery(document).ready(function() {
 
 	var nodeID = [];  
 
-	var numofDevice = 2;
+	var numOfDevice = 2;
 
 
 	var map = null;
@@ -177,7 +177,7 @@ jQuery(document).ready(function() {
 	
 	
 	function callnodeID() {
-		for(var i=0;i<numofDevice;i++) {
+		for(var i=0;i<numOfDevice;i++) {
 			nodeIndex=i;
 			getConfig( function(err,config) {
 				nodeID.push(config.nodeID);	
@@ -238,7 +238,7 @@ jQuery(document).ready(function() {
 		}
 
 		var infowindow = [];  
-		for (var i =0; i < numofDevice; i++) {
+		for (var i =0; i < numOfDevice; i++) {
 			infowindow.push(new google.maps.InfoWindow({
 				content: contentString(nodeID[i])
 			})  );
@@ -246,7 +246,7 @@ jQuery(document).ready(function() {
 
 
 		var marker = [];  
-		for (var i =0; i < numofDevice; i++) {
+		for (var i =0; i < numOfDevice; i++) {
 			marker.push(new google.maps.Marker({
 				position: myLatLng[i],
 				map: map,
@@ -257,7 +257,7 @@ jQuery(document).ready(function() {
 
 		///////////////////////////////////////////
 		
-		for (var j =0; j < numofDevice; j++) {
+		for (var j =0; j < numOfDevice; j++) {
 			google.maps.event.addListener(marker[j], 'click', InfoListener(j));
 		}
 
@@ -269,7 +269,7 @@ jQuery(document).ready(function() {
 					nodeID[j] = config.nodeID;
 				});
 				
-				for (var i =0; i < numofDevice; i++) {	
+				for (var i =0; i < numOfDevice; i++) {	
 					if( infowindow[i] ) {
 						infowindow[i].close();
 					}

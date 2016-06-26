@@ -54,9 +54,9 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 - `config_x.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
 
 > 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
-	1. config_x.js와 device_x.js파일을 추가 또는 삭제(번호는 1번부터 빠짐없이 순차로)<br>
-	2. config_x.js의 `nodeID`수정<br>
-	3.  application_web.js의 `numOfDevice`수정<br>
+	1. `config_x.js`와 `device_x.js`파일을 추가 또는 삭제(번호는 1번부터 빠짐없이 순차로)<br>
+	2. `config_x.js`의 `nodeID`수정<br>
+	3.  `application_web.js`의 `numOfDevice`수정<br>
 4.  `/public/js/app.js` 의 `numOfDevice` 수정<br>
 
 
@@ -127,7 +127,7 @@ content : 32,74,91 //온도, 습도, 조도 가상값
 
 #### Device가 하는 일
 
- 구분  | 설명 | HTTP Method(MQTT Publish)
+ 구분  | 설명 | HTTP Method<br>(MQTT Publish)
 -------|----|---
 1. node 생성 | 물리적 Device를 등록합니다. | POST
 2. remoteCSE 생성 | 서비스 및 remoteCSE ID와 passCode를 oneM2M 서버에 등록하고, 서비스에서 발생되는 데이터(dKey)를 저장합니다 . | POST
@@ -137,7 +137,7 @@ content : 32,74,91 //온도, 습도, 조도 가상값
 6. execInstance 갱신 | ThingPlug로부터 전달받은 execInstance의 결과를 갱신합니다. | PUT
 
 - MQTT 버전의 경우 `isRunning`의 상태에 따라 동작을 구분 지으며,  
-`Subscribe`를 통해 ThingPlug로부터 수신을 받고, `Publish`를 통해 ThingPlug로 HTTP의 POST와 같은 동작을 하게 됩니다.
+`Subscribe`를 통해 ThingPlug로부터 Response를 받고, `Publish`를 통해 ThingPlug로 HTTP의 Request 동작을 하게 됩니다.
 
 ### ThingPlug에 내 계정에 Device를 등록
 애플리케이션에서 ThingPlug oneM2M REST API를 통해 데이터를 필요에 따라 제어명령을 보내기 위해서는 먼저 ThingPlug 사이트에 위 device(생성된 remoteCSE)를 등록해야합니다.

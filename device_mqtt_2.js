@@ -11,9 +11,9 @@ var UPDATE_CONTENT_INTERVAL = 1000;
 var util = require('util');
 var mqtt = require('mqtt');
 
-var BASE_TEMP = 30;
-var BASE_HUMID = 60;
-var BASE_LUX = 80;
+var BASE_TEMP = 40;
+var BASE_HUMID = 70;
+var BASE_LUX = 90;
 
 var APP_EUI = "/0000000000000001";
 var APP_version = "/v1_0";

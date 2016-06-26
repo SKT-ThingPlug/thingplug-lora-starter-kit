@@ -54,11 +54,11 @@ jQuery(document).ready(function() {
 	};
 
 	
-	var if_sensor = null;
-	var if_if = null;
-	var if_value = null;
-	var if_way = null;
-	var if_nodeID = null;
+	var trigger_sensor = null;
+	var trigger_if = null;
+	var trigger_value = null;
+	var trigger_way = null;
+	var trigger_nodeID = null;
 	var output_string = null;
 	
 	/* graph Related Variables */
@@ -361,7 +361,7 @@ jQuery(document).ready(function() {
 		.attr("d", function(d) { return obj._line(d.values); })
 	}
 
-	function getData(container, cb, timeValue, data_lux) {
+	function getData(container, cb) {
 		var url = '/data/' + container;
 		
 		$.get(url, function(data, status){
@@ -372,19 +372,13 @@ jQuery(document).ready(function() {
 				var valueDate = valueTime.substr(0, 10);
 				var valueTimes = valueTime.substr(11, 8);
 				valueTime = valueDate + " " + valueTimes;
-				var valueLatHex = valuePrim.substr(16,6); // get Latitude value in Hex manner
-				var valueLngHex = valuePrim.substr(22,6); // get Latitude value in Hex manner	
-				var valueAltHex = valuePrim.substr(28,4);
-				var valueHex = valuePrim.substr(14,1); // get (a,b) means substract b characters from a point
-				valueLat = hextodec(valueLatHex)/100000;
-				valueLng = hextodec(valueLngHex)/100000;
-				valueAlt = hextodec(valueAltHex);
-				var value = hextodec(valueHex);
+
 				var ri = parseInt(data.ri.slice(2, data.ri.length));
 				if(ri > recent_ri){
 					recent_ri = ri;
 				}
-				cb(null, valueLat, valueLng, valueAlt, valueTime, valuePrim);
+				
+				cb(null, valueTime, valuePrim);
 			}
 			else {
 				console.log('[Error] /data API return status :'+status);
@@ -431,7 +425,7 @@ jQuery(document).ready(function() {
 	initMap();
 	setInterval(function(){
 		
-		getData(container_name, function(err,data,data_lng, data_alt, time,data_prim){
+		getData(container_name, function(err,time,data_prim){
 			var valueTemp = data_prim.substr(0,2);
 			var valueHumid = data_prim.substr(3,2);
 			var valueLux = data_prim.substr(6,2);
@@ -441,13 +435,13 @@ jQuery(document).ready(function() {
 			insertData(data_lux,valueLux, '#lux_value');
 			
 			output_string = 'Device ID : '+nodeID[nodeIndex]+', Temp : ' + valueTemp.toString() + ', Humidity : ' + valueHumid.toString() + ', Brightness : ' + valueLux.toString();
-			if(if_sensor == "Temperature"){//Temperature
+			if(trigger_sensor == "Temperature"){//Temperature
 				valueIF = parseInt(valueTemp);
 			}
-			else if(if_sensor == "Humidity"){//Humidity
+			else if(trigger_sensor == "Humidity"){//Humidity
 				valueIF = parseInt(valueHumid);
 			}
-			else if(if_sensor == "Bright"){//Bright
+			else if(trigger_sensor == "Bright"){//Bright
 				valueIF = parseInt(valueLux);
 			}
 			
@@ -472,33 +466,31 @@ jQuery(document).ready(function() {
 
 		
 		var isTrue = false;
-		if(if_nodeID == Data_NodeID[0]){
-			//alert(valueIF + "," + if_value + "," + if_if)
-			if((if_if == 1) && (valueIF < if_value) && valueIF){
+		if(trigger_nodeID == Data_NodeID[0]){
+			if((trigger_if == 1) && (valueIF < trigger_value) && valueIF){
 				isTrue = true;
 				
 			}
-			else if(if_if == 2 && valueIF == if_value){
+			else if(trigger_if == 2 && valueIF == trigger_value){
 				isTrue = true;
 
 			}
-			else if(if_if == 3 && valueIF > if_value){
+			else if(trigger_if == 3 && valueIF > trigger_value){
 				isTrue = true;;
 			}
-			if(isTrue && if_way == "PHONE"){
+			if(isTrue && trigger_way == "PHONE"){
 				smsOptions.CONTENT = output_string;
 				sendsms( function(err,smsOptions) {
-					alert('Sent SMS');
+					alert('Sent SMS : ' + output_string);
 				});
-				if_if = 0;
+				trigger_if = 0;
 			}
-			else if(isTrue && if_way == "E-Mail"){
+			else if(isTrue && trigger_way == "E-Mail"){
 				emailOptions.text = output_string;
 				sendmail( function(err,emailOptions) {
-					alert(valueIF);
-					alert('Sent E-MAIL');
+					alert('Sent E-MAIL : '+ output_string);
 				});
-				if_if = 0;
+				trigger_if = 0;
 			}
 		}
 
@@ -537,42 +529,42 @@ jQuery(document).ready(function() {
 	$('#action_button').on('click', function(event) {
 
 		
-		if_sensor = document.getElementById('if_sensor').value;
-		if_if = document.getElementById('if_if').value;
-		if_value = document.getElementById('if_value').value;
+		trigger_sensor = document.getElementById('trigger_sensor').value;
+		trigger_if = document.getElementById('trigger_if').value;
+		trigger_value = document.getElementById('trigger_value').value;
 		alert('Registered');
 		
-		if_way = document.getElementById('if_way').value;
-		if_nodeID = nodeID[nodeIndex];
+		trigger_way = document.getElementById('trigger_way').value;
+		trigger_nodeID = nodeID[nodeIndex];
 		
 		
 		var sign_if = null;
-		if(if_if == 1){
+		if(trigger_if == 1){
 			sign_if = " < ";
 		}
-		else if(if_if == 2){
+		else if(trigger_if == 2){
 			sign_if = " == ";
 
 		}
-		else if(if_if == 3){
+		else if(trigger_if == 3){
 			sign_if = " > ";
 		}	
-		output_string = "Check, when "+if_nodeID+ " is " + if_sensor + sign_if + if_value + ", it will be notified";
+		output_string = "Check, when "+trigger_nodeID+ " is " + trigger_sensor + sign_if + trigger_value + ", it will be notified";
 		
-		if(if_way == "PHONE" && sign_if){
+		if(trigger_way == "PHONE" && sign_if){
 			smsOptions.RECEIVERS = [document.getElementById('action_type_value').value];
 			
 			
 			smsOptions.CONTENT = output_string;
 			sendsms( function(err,smsOptions) {
-				alert('Sent SMS');
+				alert('Sent SMS'+ output_string);
 			});
 		}
-		else if(if_way == "E-Mail" && sign_if){
+		else if(trigger_way == "E-Mail" && sign_if){
 			emailOptions.text = output_string;
 			emailOptions.to = document.getElementById('action_type_value').value;
 			sendmail( function(err,emailOptions) {
-				alert('Sent E-MAIL');
+				alert('Sent E-MAIL'+ output_string);
 			});
 			
 		}

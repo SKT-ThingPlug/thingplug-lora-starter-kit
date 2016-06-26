@@ -84,6 +84,7 @@ function MQTTClient(){
 				
 				//console.log('mqttClient.isRunning : '+isRunning);
 				if("node"==isRunning){
+					console.log(colors.green('1. node 생성 결과'));
 					console.log("nodeRI : "+xmlObj['m2m:rsp']['pc'][0]['nod'][0]['ri'][0]);//
 					config.nodeRI = xmlObj['m2m:rsp']['pc'][0]['nod'][0]['ri'][0];
 					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
@@ -99,6 +100,7 @@ function MQTTClient(){
 					});
 				}
 				else if("remoteCSE"==isRunning){
+					console.log(colors.green('2. remoteCSE 생성 결과'));
 					console.log("dKey : "+xmlObj['m2m:rsp']['dKey'][0]);//
 					config.dKey = xmlObj['m2m:rsp']['dKey'][0];
 					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
@@ -115,6 +117,7 @@ function MQTTClient(){
 					});
 				}
 				else if("container"==isRunning){
+					console.log(colors.green('3. container 생성 결과'));
 					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
 						console.log(colors.green('이미 생성된 container 입니다.'));
 					}
@@ -128,6 +131,7 @@ function MQTTClient(){
 					});
 				}
 				else if("DevReset"==isRunning){
+					console.log(colors.green('4. mgmtCmd 생성 결과'));	
 					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
 						console.log(colors.green('이미 생성된 DevReset 입니다.'));
 					}
@@ -141,6 +145,7 @@ function MQTTClient(){
 					});
 				}
 				else if("RepImmediate"==isRunning){
+					console.log(colors.green('4. mgmtCmd 생성 결과'));	
 					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
 						console.log(colors.green('이미 생성된 RepImmediate 입니다.'));
 					}
@@ -154,6 +159,7 @@ function MQTTClient(){
 					});
 				}
 				else if("RepPerChange"==isRunning){
+					console.log(colors.green('4. mgmtCmd 생성 결과'));	
 					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
 						console.log(colors.green('이미 생성된 RepPerChange 입니다.'));
 					}

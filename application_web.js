@@ -103,7 +103,7 @@ httpReq({
     path : AppEUI+version+'/remoteCSE-'+ config[configInedex].nodeID+ '/container-'+config[configInedex].containerName+'/latest',
     method: 'GET',
     headers : {
-      Accept: 'application/xml',
+      Accept: 'application/json',
       locale: 'ko',
       uKey : config[configInedex].uKey,
       'X-M2M-RI': randomInt(100000, 999999),
@@ -111,8 +111,6 @@ httpReq({
     }
   }
 }).then(function(result){
-	
-	  //console.log(result);
   if(result.data){
 		var data = JSON.parse(result.data);
 		return cb(null, data);

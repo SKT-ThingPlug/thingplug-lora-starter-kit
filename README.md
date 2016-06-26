@@ -55,7 +55,7 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 
 > 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
 	1. config_x.js와 device_x.js파일을 추가 또는 삭제<br>
-	2. config_x.js의 nodeID 및 device_x.js의 `require('./config_x')` 수정<br>
+	2. config_x.js의 `nodeID` 및 device_x.js의 `require('./config_x')` 수정<br>
 	3.  application_web.js의<br>
 `var config_x = require('./config_x');`<br>
 `app.get('/config_x', function(req,res) {`<br>
@@ -85,8 +85,8 @@ CSE_ID는 디바이스를 oneM2M에서 구분하기 위해 주민번호처럼 �
 
 ```javascript
 module.exports = {
-  uKey : 'USER_KEY', // Thingplug(https://thingplug.sktiot.com) 로그인 후, `마이페이지`에 있는 사용자 인증키
-  nodeID : 'LTID', // Device 구분을 위한 ID
+  uKey : 'USER_KEY', // Thingplug(https://thingplugpf.sktiot.com) 로그인 후, `마이페이지`에 있는 사용자 인증키
+  nodeID : 'LTID', // Device 구분을 위한 LoRa-ThingPlug ID
   passCode : '000101', // ThingPlug에 Device등록 시 사용할 Device의 비밀번호
   appID : 'myApplication', //Application의 구분을 위한 ID
   containerName:'LoRa', // starter kit에서 생성하고 사용할 container 이름 (임의지정)
@@ -123,20 +123,17 @@ content-location: /APP_EUI/APP_version/mgmtCmd-LTID
 
 5. content Instance 주기적 생성 시작
 
-6. 제어 명령 수신 MQTT 연결
-### mqtt connected ###
+6. 제어 명령 수신
+### mqtt(http) connected ###
 content : 35,72,90 //온도, 습도, 조도 가상값
-resourceID : CI00000000000000000000//(ThingPlug에서 발급받은 값)
 content : 33,70,92 //온도, 습도, 조도 가상값
-resourceID : CI00000000000000000000//(ThingPlug에서 발급받은 값)
 content : 32,74,91 //온도, 습도, 조도 가상값
-resourceID : CI00000000000000000000//(ThingPlug에서 발급받은 값)
 ...
 ```
 
 #### Device가 하는 일
 
- 구분  | 설명 | HTTP Method
+ 구분  | 설명 | HTTP Method(MQTT Publish)
 -------|----|---
 1. node 생성 | 물리적 Device를 등록합니다. | POST
 2. remoteCSE 생성 | 서비스 및 remoteCSE ID와 passCode를 oneM2M 서버에 등록하고, 서비스에서 발생되는 데이터(dKey)를 저장합니다 . | POST
@@ -145,12 +142,16 @@ resourceID : CI00000000000000000000//(ThingPlug에서 발급받은 값)
 5. Content Instance 생성 | 센서의 측정값을 지정한 컨테이너에 기록합니다. | POST
 6. execInstance 갱신 | ThingPlug로부터 전달받은 execInstance의 결과를 갱신합니다. | PUT
 
+- MQTT 버전의 경우 `isRunning`의 상태에 따라 동작을 구분 지으며,  
+`Subscribe`를 통해 ThingPlug로부터 수신을 받고, `Publish`를 통해 ThingPlug로 HTTP의 POST와 같은 동작을 하게 됩니다.
+
 ### ThingPlug에 내 계정에 Device를 등록
 애플리케이션에서 ThingPlug oneM2M REST API를 통해 데이터를 필요에 따라 제어명령을 보내기 위해서는 먼저 ThingPlug 사이트에 위 device(생성된 remoteCSE)를 등록해야합니다.
 
 - [ThingPlug](https://thingplug.sktiot.com) 로그인 후 "마이페이지 > 나의 디바이스 > 디바이스 등록" 페이지로 이동합니다.
 - 위에서 device 실행 시 사용한 `config.js`의 디바이스 아이디(cse_ID)와 passCode를 개별등록에 입력하고 `디바이스 정보확인` 버튼을 누릅니다.
 - 필수정보 입력화면에 내용을 해당 내용을 넣어준 후 하단 '저장'버튼을 누르면 ThingPlug에 Device 등록이 완료됩니다.
+
 
 ## Application 실행
 `node application_web.js` 명령어로 application을 실행합니다. (Application 실행하기 전에 `device.js`가 동작하는 상태로 유지합니다. 따라서 `device.js` 실행을 종료하지 않고 새로운 terminal(커맨드창)을 열어 실행하세요. 웹페이지를 확인하시기 위해서는 `http://[SERVER_IP]:3000/dashboard`를 확인해주세요
@@ -162,6 +163,7 @@ resourceID : CI00000000000000000000//(ThingPlug에서 발급받은 값)
 실행 후 `device.js`가 실행중인 터미널을 살펴보면 application이 보낸 mgmtCmd에 대한 아래와 같은 MQTT 로그가 보일 것입니다.
 
 ```
+///device.js mgmtCmd수신 받은경우//
 #####################################
 MQTT 수신 
 mgmtCmd : mgmtCmd
@@ -195,9 +197,12 @@ EXRA : request 목적
  구분  | 설명 | Method
 -------|----|---
 1. Content Instance 조회 |  가장 최근의 content Instance를 조회합니다. | HTTP GET
-2. mgmtCmd execInstance 생성 | Device로 보낼 제어 명령을 ThingPlug에게 보냅니다. | HTTP POST
+2. mgmtCmd 요청 | Device로 보낼 제어 명령을 ThingPlug에게 보냅니다. | HTTP POST
+2-1. <br>DevReset | LoRa 디바이스 리셋을 위한 mgmtCmd | 
+2-2. <br>RepPerChange | LoRa 디바이스의 Uplink(주기 보고) 주기 변경을 위한 mgmtCmd | 
+2-3. <br>RepImmediate | LoRa 디바이스의 Uplink(주기 보고) 즉시 보고를 위한 mgmtCmd |
 3. mgmtCmd execInstance 조회 | Device로 보낸 제어 명령의 상태를 조회 합니다. | HTTP GET
-4. Google 지도 API | LoRa Device 위치 표시(현재는 임의값) | Google API
+4. Google 지도 API | LoRa Device 위치 표시 | Google API
 4. Trigger 설정 | Trigger 발생시 notification | nodemailer API
 
 ## Web Application 실행
@@ -210,8 +215,8 @@ EXRA : request 목적
 ![web page](https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-lora-starter-kit/master/images/web.png)
 
 
-## 환영합니다. 당신은 이제 oneM2M IoT입니다.
-어떠세요? 벌써 Starter Kit을 이용하여 SK ThingPlug oneM2M 기반의 IoT에 필요한 구성요소를 준비 완료했습니다. 이제 Application과 Device의 코드를 시작점으로 원하는 서비스를 만들어보세요. 서비스를 개발해 나가는 과정에서 생겨나는 궁금증은 [ThingPlug 개발자 커뮤니티](https://sandbox.sktiot.com/IoTPortal/cmmnty/cmmntyList)를 이용해주세요.
+## 환영합니다. 당신은 이제 ThingPlug LoRa IoT User입니다.
+어떠세요? 벌써 Starter Kit을 이용하여 SK ThingPlug LoRa 사용에 필요한 구성요소를 준비 완료했습니다. 이제 Application과 Device의 코드를 시작점으로 원하는 서비스를 만들어보세요. 서비스를 개발해 나가는 과정에서 생겨나는 궁금증은 [ThingPlug 개발자 커뮤니티](https://sandbox.sktiot.com/IoTPortal/cmmnty/cmmntyList)를 이용해주세요.
 
 ##Starter Kit에 대한 상세한 내용은 ThingPlug 가이드북을 참고하세요.
 [ThingPlug로 시작하는 IoT 서비스 개발](http://book.naver.com/bookdb/book_detail.nhn?bid=9766474)를 참고하세요.

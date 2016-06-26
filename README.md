@@ -127,7 +127,7 @@ content : 32,74,91 //온도, 습도, 조도 가상값
 
 #### Device가 하는 일
 
- 구분  | 설명 | HTTP Method(MQTT Publish)
+ 구분  | 설명 | HTTP Method<br>(MQTT Publish)
 -------|----|---
 1. node 생성 | 물리적 Device를 등록합니다. | POST
 2. remoteCSE 생성 | 서비스 및 remoteCSE ID와 passCode를 oneM2M 서버에 등록하고, 서비스에서 발생되는 데이터(dKey)를 저장합니다 . | POST
@@ -137,7 +137,7 @@ content : 32,74,91 //온도, 습도, 조도 가상값
 6. execInstance 갱신 | ThingPlug로부터 전달받은 execInstance의 결과를 갱신합니다. | PUT
 
 - MQTT 버전의 경우 `isRunning`의 상태에 따라 동작을 구분 지으며,  
-`Subscribe`를 통해 ThingPlug로부터 수신을 받고, `Publish`를 통해 ThingPlug로 HTTP의 POST와 같은 동작을 하게 됩니다.
+`Subscribe`를 통해 ThingPlug로부터 Response를 받고, `Publish`를 통해 ThingPlug로 HTTP의 Request 동작을 하게 됩니다.
 
 ### ThingPlug에 내 계정에 Device를 등록
 애플리케이션에서 ThingPlug oneM2M REST API를 통해 데이터를 필요에 따라 제어명령을 보내기 위해서는 먼저 ThingPlug 사이트에 위 device(생성된 remoteCSE)를 등록해야합니다.

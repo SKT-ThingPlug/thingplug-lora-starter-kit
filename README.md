@@ -54,16 +54,10 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 - `config_x.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
 
 > 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
-	1. config_x.js와 device_x.js파일을 추가 또는 삭제<br>
-	2. config_x.js의 `nodeID` 및 device_x.js의 `require('./config_x')` 수정<br>
-	3.  application_web.js의<br>
-`var config_x = require('./config_x');`<br>
-`app.get('/config_x', function(req,res) {`<br>
-&nbsp; `config = config_x;`<br>
-&nbsp; `res.send(config_x);`<br>
-`});`<br>
-부분 변경<br>
-4.  `/public/js/app.js` 의 `numofDevice` 값 변경<br>
+	1. config_x.js와 device_x.js파일을 추가 또는 삭제(번호는 1번부터 빠짐없이 순차로)<br>
+	2. config_x.js의 `nodeID`수정<br>
+	3.  application_web.js의 `numOfDevice`수정<br>
+4.  `/public/js/app.js` 의 `numOfDevice` 수정<br>
 
 
 
@@ -85,7 +79,7 @@ CSE_ID는 디바이스를 oneM2M에서 구분하기 위해 주민번호처럼 �
 
 ```javascript
 module.exports = {
-  uKey : 'USER_KEY', // Thingplug(https://thingplug.sktiot.com) 로그인 후, `마이페이지`에 있는 사용자 인증키
+  uKey : 'USER_KEY', // Thingplug 로그인 후, `마이페이지`에 있는 사용자 인증키
   nodeID : 'LTID', // Device 구분을 위한 LoRa-ThingPlug ID
   passCode : '000101', // ThingPlug에 Device등록 시 사용할 Device의 비밀번호
   appID : 'myApplication', //Application의 구분을 위한 ID
@@ -148,7 +142,7 @@ content : 32,74,91 //온도, 습도, 조도 가상값
 ### ThingPlug에 내 계정에 Device를 등록
 애플리케이션에서 ThingPlug oneM2M REST API를 통해 데이터를 필요에 따라 제어명령을 보내기 위해서는 먼저 ThingPlug 사이트에 위 device(생성된 remoteCSE)를 등록해야합니다.
 
-- [ThingPlug](https://thingplug.sktiot.com) 로그인 후 "마이페이지 > 나의 디바이스 > 디바이스 등록" 페이지로 이동합니다.
+- [ThingPlug] 로그인 후 "마이페이지 > 나의 디바이스 > 디바이스 등록" 페이지로 이동합니다.
 - 위에서 device 실행 시 사용한 `config.js`의 디바이스 아이디(cse_ID)와 passCode를 개별등록에 입력하고 `디바이스 정보확인` 버튼을 누릅니다.
 - 필수정보 입력화면에 내용을 해당 내용을 넣어준 후 하단 '저장'버튼을 누르면 ThingPlug에 Device 등록이 완료됩니다.
 
@@ -160,12 +154,12 @@ content : 32,74,91 //온도, 습도, 조도 가상값
 
 
 
-실행 후 `device.js`가 실행중인 터미널을 살펴보면 application이 보낸 mgmtCmd에 대한 아래와 같은 MQTT 로그가 보일 것입니다.
+실행 후 `device.js`가 실행중인 터미널을 살펴보면 application이 보낸 mgmtCmd에 대한 아래와 같은 로그가 보일 것입니다.
 
 ```
 ///device.js mgmtCmd수신 받은경우//
 #####################################
-MQTT 수신 
+MQTT(HTTP) 수신 
 mgmtCmd : mgmtCmd
 
 RI : EI00000000000000000000
@@ -175,17 +169,28 @@ EXRA : request 목적
 ```
 ```javascript
 ///////CODE EXAMPLE in device.js///////////
-		if(cmt=='RepImmediate'){
-			BASE_TEMP = 10;//온도를 낮춤
+
+////////////response for HTTP//////////////
+httpRes.createServer(function (req, res) {
+...//받은 요청 처리 및 응답
+}).listen(ResponsePORT);
+
+////////////response for MQTT//////////////
+client.on('message', function(topic, message){
+	var msgs = message.toString().split(',');
+	xml2js.parseString( msgs[0], function(err, xmlObj){
+		...//받은 요청 처리 및 응답
+	});
+
+/////////condition branch//////////////////
+		if(cmt=='RepImmediate'){//즉시보고
+			...
 		}
-		else if(cmt=='RepPerChange'){
-			UPDATE_CONTENT_INTERVAL = EXRA.cmd*1000;
-			console.log('UPDATE_CONTENT_INTERVAL: ' + UPDATE_CONTENT_INTERVAL);//주기를 변경 
-			clearInterval(IntervalFunction);
-			IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
+		else if(cmt=='RepPerChange'){//주기변경
+			...
 		}
-		else if(cmt=='DevReset'){
-			BASE_TEMP = 30;//디바이스 초기화(주기를 높임)		
+		else if(cmt=='DevReset'){//디바이스 초기화
+			...		
 		}
 		else{
 			console.log('Unknown CMD');

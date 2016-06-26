@@ -6,6 +6,16 @@ var httpReq = require('./promise-http').request;
 
 var config = require('./config_2');
 
+var TPhost = '211.115.15.160';
+var TPport = '9000';
+var AppEUI = '/0000000000000001';
+var version = '/v1_0';
+
+var IntervalFunction;
+var UPDATE_CONTENT_INTERVAL = 1000;
+var BASE_TEMP = 30;
+var BASE_HUMID = 60;
+var BASE_LUX = 80;
 
 
 console.log(colors.green('### ThingPlug Device###'));
@@ -22,12 +32,38 @@ function randomInt (low, high) {
 
 
   // HTTP Connect
-var http = require('http');
+var httpRes = require('http');
 var messages = [
   'Hello World',
   'From a basic Node.js server',
   'Take Luck'];
-http.createServer(function (req, res) {
+httpRes.createServer(function (req, res) {
+
+  
+   // console.log(colors.red('#####################################'));
+  // console.log(colors.red('HTTP 수신'));
+  // xml2js.parseString( req, function(err, xmlObj){
+	// if(!err){
+	  // console.log(xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0]);//EI000000000000000
+	  // console.log(xmlObj['m2m:req']['pc'][0]['exin'][0]['cmt'][0]);//Type
+	  // console.log(xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);//CMD : 
+	  // try{
+		// var req = JSON.parse(xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);
+		// var cmt = xmlObj['m2m:req']['pc'][0]['exin'][0]['cmt'][0];
+	  // }
+	  // catch(e){
+		// console.error(xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);
+		// console.error(e);
+	  // }
+	  // processCMD(req, cmt);
+	  // var ei = xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0];
+	  // updateExecInstance(ei);//TBD. cmd에 맞는 명령 보내기
+	// }
+  // });
+  // console.log(colors.red('#####################################'));
+  
+  
+ 	
   res.setHeader("Content-Type", "text/html");
   res.writeHead(200);
   res.write('<html><head><title>Simple HTTP Server</title></head>');
@@ -40,12 +76,34 @@ http.createServer(function (req, res) {
 }).listen(1357);
 
 
+function processCMD(req, cmt){
+	
+	if(cmt=='RepImmediate'){
+		BASE_TEMP = 10;
+	}
+	else if(cmt=='RepPerChange'){
+		UPDATE_CONTENT_INTERVAL = req.cmd*1000;
+		console.log('UPDATE_CONTENT_INTERVAL: ' + UPDATE_CONTENT_INTERVAL);
+		clearInterval(IntervalFunction);
+		IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
+	}
+	else if(cmt=='DevReset'){
+		BASE_TEMP = 30;		
+	}
+	else{
+		console.log('Unknown CMD');
+	}
+}
+
+
+
+
 // 1. node 생성
 httpReq({ 
   options: {
-	  host: '211.115.15.160',
-      port: '9000',
-      path : '/0000000000000001/v1_0',
+	  host: TPhost,
+      port: TPport,
+      path : AppEUI+version,
     method: 'POST',
     headers : {
       'X-M2M-Origin': config.nodeID,				//해당 요청 메시지 송신자의 식별자
@@ -70,9 +128,9 @@ httpReq({
   // 2. remoteCSE생성 요청(기기등록)
   return httpReq({ 
     options: {
-	  host: '211.115.15.160',
-      port: '9000',
-      path : '/0000000000000001/v1_0',													//rty는 생성하고자 하는 Resource Type의 식별자 (rty == 16은 remoteCSE를 의미함)
+	  host: TPhost,
+      port: TPport,
+      path : AppEUI+version,													//rty는 생성하고자 하는 Resource Type의 식별자 (rty == 16은 remoteCSE를 의미함)
       method: 'POST',
       headers : {	
         'X-M2M-Origin': config.nodeID,										//해당 요청 메시지 송신자의 식별자
@@ -107,9 +165,9 @@ httpReq({
   // 3. container 생성 요청
   return httpReq({ 
     options: {
-	  host: '211.115.15.160',
-      port: '9000',												
-      path : '/0000000000000001/v1_0/remoteCSE-'+ config.nodeID,				//rty == 3은 생성하고자 하는 container 자원을 의미함
+	  host: TPhost,
+      port: TPport,												
+      path : AppEUI+version+'/remoteCSE-'+ config.nodeID,				//rty == 3은 생성하고자 하는 container 자원을 의미함
       method: 'POST',
       headers : {
         'X-M2M-Origin': config.nodeID,										//해당 요청 메시지 송신자의 식별자
@@ -137,9 +195,9 @@ httpReq({
   // 4. 장치 제어를 위한 device mgmtCmd DevReset 리소스 생성
   return httpReq({
     options: {
-	  host: '211.115.15.160',
-      port: '9000',
-      path : '/0000000000000001/v1_0',	
+	  host: TPhost,
+      port: TPport,
+      path : AppEUI+version,	
       method: 'POST',
       headers : {
         Accept: 'application/json',
@@ -169,9 +227,9 @@ httpReq({
   // 4. 장치 제어를 위한 device mgmtCmd RepPerChange 리소스 생성
   return httpReq({
     options: {
-	  host: '211.115.15.160',
-      port: '9000',
-      path : '/0000000000000001/v1_0',	
+	  host: TPhost,
+      port: TPport,
+      path : AppEUI+version,	
       method: 'POST',
       headers : {
         Accept: 'application/json',
@@ -197,14 +255,14 @@ httpReq({
   console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
   if(result.headers){
     console.log(colors.green('4. content Instance 주기적 생성 시작'));
-IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
+	IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
   }
   // 4. 장치 제어를 위한 device mgmtCmd RepImmediate 리소스 생성
   return httpReq({
     options: {
-	  host: '211.115.15.160',
-      port: '9000',
-      path : '/0000000000000001/v1_0',	
+	  host: TPhost,
+      port: TPport,
+      path : AppEUI+version,	
       method: 'POST',
       headers : {
         Accept: 'application/json',
@@ -231,9 +289,9 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
   // 2. create Subscription
   return httpReq({ 
     options: {
-	  host: '211.115.15.160',
-      port: '9000',
-      path : '/0000000000000001/v1_0/remoteCSE-'+ config.nodeID + '/container-'+config.containerName,													//rty는 생성하고자 하는 Resource Type의 식별자 (rty == 16은 remoteCSE를 의미함)
+	  host: TPhost,
+      port: TPport,
+      path : AppEUI+version+'/remoteCSE-'+ config.nodeID + '/container-'+config.containerName,													//rty는 생성하고자 하는 Resource Type의 식별자 (rty == 16은 remoteCSE를 의미함)
       method: 'POST',
       headers : {	
         'X-M2M-Origin': config.nodeID,										//해당 요청 메시지 송신자의 식별자
@@ -259,54 +317,6 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
 });
 
 
-///////////////
-
-
-// httpres.createServer(function (req, res) {
-// console.log('bbb');
-	  // res.setEncoding('utf8');
-      // res.on('data', function (chunk) {
-        // resolve({
-          // data: chunk
-        // });
-			// console.log('ccc');
-      // });
-	// console.log('ddd');
-	// var msgs = message.toString().split(',');
-      // console.log(colors.red('#####################################'));
-      // console.log(colors.red('HTTP 수신'));
-      // xml2js.parseString( msgs[0], function(err, xmlObj){
-        // if(!err){
-          // console.log(xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0]);//EI000000000000000
-		  // console.log(xmlObj['m2m:req']['pc'][0]['exin'][0]['cmt'][0]);//Type
-          // console.log(xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);//CMD : 
-          // try{
-            // var req = JSON.parse(xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);
-			// var cmt = xmlObj['m2m:req']['pc'][0]['exin'][0]['cmt'][0];
-          // }
-          // catch(e){
-            // console.error(xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);
-            // console.error(e);
-          // }
-          // processCMD(req, cmt);
-          // var ei = xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0];
-          // updateExecInstance(ei);//TBD. cmd에 맞는 명령 보내기
-        // }
-      // });
-      // console.log(colors.red('#####################################'));
-
-// }).listen();
-
-
-///////////////
-var IntervalFunction;
-var UPDATE_CONTENT_INTERVAL = 1000;
-var BASE_TEMP = 40;
-var BASE_HUMID = 70;
-var BASE_LUX = 90;
-
-
-
  function IntervalProcess(){
       var value_TEMP = Math.floor(Math.random() * 5) + BASE_TEMP;
 	  var value_HUMID = Math.floor(Math.random() * 5) + BASE_HUMID;
@@ -315,9 +325,9 @@ var BASE_LUX = 90;
     var value = value_TEMP.toString()+","+value_HUMID.toString()+","+value_LUX.toString()
     httpReq({ 
       options : {
-		host: '211.115.15.160',
-        port: '9000',
-        path : '/0000000000000001/v1_0/remoteCSE-'+ config.nodeID+ '/container-'+config.containerName,		//rty == 4는 생성하고자 하는 contentInstance 자원을 의미함
+		host: TPhost,
+        port: TPport,
+        path : AppEUI+version+'/remoteCSE-'+ config.nodeID+ '/container-'+config.containerName,		//rty == 4는 생성하고자 하는 contentInstance 자원을 의미함
         method: 'POST',
         headers : {
           Accept: 'application/json',
@@ -329,9 +339,9 @@ var BASE_LUX = 90;
         }
       },
       body : {cin:{
-    cnf : 'text', //업로드 하는 데이터 타입의 정보 (cnf = contentInfo)
-    con : value   //업로드 하는 데이터 (con == content)
-  }}
+		cnf : 'text', //업로드 하는 데이터 타입의 정보 (cnf = contentInfo)
+		con : value   //업로드 하는 데이터 (con == content)
+		}}
     }).then(function(result){
 		
       var data = JSON.parse(result.data);
@@ -342,14 +352,12 @@ var BASE_LUX = 90;
     });
       
     }
-//IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
-
 function updateExecInstance(ei){
   httpReq({ // ### execInstance Update(PUT) - execStatus 변경됨
     options: {
-		host: '211.115.15.160',
-        port: '9000',
-      path : '/0000000000000001/v1_0/mgmtCmd-'+config.mgmtCmdprefix+'/execInstance-'+ei,
+		host: TPhost,
+        port: TPport,
+      path : AppEUI+version+'/mgmtCmd-'+config.mgmtCmdprefix+'/execInstance-'+ei,
       method: 'PUT',
       headers : {
         Accept: 'application/json',
@@ -371,3 +379,4 @@ function updateExecInstance(ei){
     console.log(err);
   });
 }
+

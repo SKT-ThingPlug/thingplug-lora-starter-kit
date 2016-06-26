@@ -17,6 +17,11 @@ var colors = require('colors');
 
 var Promise = require('es6-promise').Promise;
 
+var TPhost = '211.115.15.160';
+var TPport = '9000';
+var AppEUI = '/0000000000000001';
+var version = '/v1_0';
+
 app.set('port', process.env.PORT || 3000);
 app.use('/dashboard', express.static(path.join(__dirname,'public')));
 app.use(bodyParser.json());
@@ -92,9 +97,9 @@ function getLatestContainer(cb){
 	// 1. ContentInstance를 활용한 서버에 저장된 센서 값 조회(Retrieve)
 	httpReq({ 
 		options: {
-			host : '211.115.15.160',
-			port: '9000',
-			path : '/0000000000000001/v1_0/remoteCSE-'+ config.nodeID+ '/container-'+config.containerName+'/latest',
+			host : TPhost,
+			port: TPport,
+			path : AppEUI+version+'/remoteCSE-'+ config.nodeID+ '/container-'+config.containerName+'/latest',
 			method: 'GET',
 			headers : {
 				Accept: 'application/json',
@@ -116,9 +121,9 @@ function getLatestContainer(cb){
 function reqMgmtCmd(mgmtCmdPrefix, cmd, nodeRI, cb){
 	httpReq({ // 2. mgmCmd 요청
 		options: {
-			host : '211.115.15.160',
-			port: '9000',
-			path : '/0000000000000001/v1_0/mgmtCmd-'+config.nodeID + '_' + mgmtCmdPrefix,
+			host : TPhost,
+			port: TPport,
+			path : AppEUI+version+'/mgmtCmd-'+config.nodeID + '_' + mgmtCmdPrefix,
 			method: 'PUT',
 			headers : {
 				Accept: 'application/json',

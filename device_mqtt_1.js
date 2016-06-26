@@ -18,6 +18,8 @@ var BASE_LUX = 80;
 var APP_EUI = "/0000000000000001";
 var APP_version = "/v1_0";
 
+var mqttServerIP = 'mqtt://211.115.15.160';
+
 console.log(colors.green('### ThingPlug - LoRa virtual Device###'));
 if(typeof config === 'undefined') {
   return console.log(colors.red('먼저 config.js를 열어 optionData를 설정하세요. README.md에 Starterkit 실행 방법이 설명되어 있습니다.'));
@@ -35,7 +37,7 @@ function MQTTClient(){
   var isRunning = 1;
   var getStatus = function(){return this.isRunning;}
   
-  var mqttServerIP = 'mqtt://211.115.15.160';
+
   
   var client = mqtt.connect(mqttServerIP, {
 	username:'admin02',

@@ -202,8 +202,9 @@ EXRA : request 목적
 2-2. <br>RepPerChange | LoRa 디바이스의 Uplink(주기 보고) 주기 변경을 위한 mgmtCmd | 
 2-3. <br>RepImmediate | LoRa 디바이스의 Uplink(주기 보고) 즉시 보고를 위한 mgmtCmd |
 3. mgmtCmd execInstance 조회 | Device로 보낸 제어 명령의 상태를 조회 합니다. | HTTP GET
-4. Google 지도 API | LoRa Device 위치 표시 | Google API
-4. Trigger 설정 | Trigger 발생시 notification | nodemailer API
+4. Sensor Display | Sensor값(현재 온도, 습도, 조도) 그래프형태로 표시 | d3 API
+5. Google 지도 API | LoRa Device 위치 표시 | Google API
+6. Trigger 설정 | Trigger 발생시 notification | nodemailer API
 
 ## Web Application 실행
 `node application_web.js` 명령어로 Express.js 서버를 실행합니다. 

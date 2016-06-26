@@ -95,7 +95,7 @@ var httpReq = require('./promise-http').request;
 
 
 function getLatestContainer(cb){	
-	// 1. ContentInstance를 활용한 서버에 저장된 센서 값 조회(Retrieve)
+// 1. ContentInstance를 활용한 서버에 저장된 센서 값 조회(Retrieve)
 httpReq({ 
   options: {
     host : TPhost,
@@ -120,7 +120,8 @@ httpReq({
 
 
 function reqMgmtCmd(mgmtCmdPrefix, cmd, nodeRI, cb){
-	httpReq({ // 2. mgmCmd 요청
+// 2. mgmCmd 요청
+	httpReq({ 
     options: {
       host : TPhost,
       port: TPport,

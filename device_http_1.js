@@ -39,6 +39,14 @@ var messages = [
   'Take Luck'];
 httpRes.createServer(function (req, res) {
 
+    console.log(colors.green('mgmtCmd 제어 요청'));
+  if(req.data){
+		var data = JSON.parse(req.data);
+		
+		/////////////////////////////////
+		//data->body-> mgc -> ri, cmt, exra
+  }
+  
   
    // console.log(colors.red('#####################################'));
   // console.log(colors.red('HTTP 수신'));

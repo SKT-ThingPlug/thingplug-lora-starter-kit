@@ -9,7 +9,7 @@ var app = express();
 var config = [];
 var config_h = [];
 var configInedex = 0;
-var numOfconfig = 2;
+var numofDevice = 2;
 
 var TPhost = '211.115.15.160';
 var TPport = '9000';
@@ -30,7 +30,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //config 등록
-for (var j =0; j < numOfconfig; j++) {
+for (var j =0; j < numofDevice; j++) {
 	config.push(require('./config_'+(j+1).toString()));
 	config_h.push('/config_'+(j+1).toString());
 }

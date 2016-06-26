@@ -54,10 +54,10 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 - `config_x.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
 
 > 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
-	1. config_x.js와 device_x.js파일을 추가 또는 삭제<br>
+	1. config_x.js와 device_x.js파일을 추가 또는 삭제(번호는 1번부터 빠짐없이 순차로)<br>
 	2. config_x.js의 `nodeID`수정<br>
-	3.  application_web.js의 `numOfconfig`수정<br>
-4.  `/public/js/app.js` 의 `numofDevice` 값 변경<br>
+	3.  application_web.js의 `numofDevice`수정<br>
+4.  `/public/js/app.js` 의 `numofDevice` 수정<br>
 
 
 

@@ -14,7 +14,7 @@ Starter Kit에서는 역할에 따라 구성원을 다음 세 가지로 구분�
 
 애플리케이션과 디바이스는 직접적으로 통신하지 않고 각 구성원들은 기본적으로 ThingPlug가 제공하는 oneM2M 표준 기반의 REST API를 통해 oneM2M 서버와 통신을 하게 됩니다. 해당 API를 통해 제공되는 IoT의 공통적인 기능(예, 데이터 저장, 장치 관리, 장치 등록 등)은 디바이스와 애플리케이션의 개발자들이 좀 더 쉽게 LoRa 서비스를 개발할 수 있는 환경을 제공합니다.
 
-본 Starer Kit이 제공되는 목적은 첫째로는 애플리케이션과 디바이스가 최소한의 IoT 서비스 기능을 할 수 있도록 ThingPlug 서버가 제공하는 API를 활용하는 방법을 익히고, 두번째로는 ThingPlug에서 제공하는 oneM2M을 직접 경험해 봄으로써 oneM2M 표준을 이해하는 것입니다.
+본 Starer Kit이 제공되는 목적은 첫째로는 애플리케이션과 디바이스가 따로 없어도 쉽게 LoRa 서비스를 활용하기 위해 ThingPlug 서버가 제공하는 API를 활용하는 방법을 익히고, 두번째로는 ThingPlug에서 제공하는 oneM2M을 직접 경험해 봄으로써 oneM2M 표준을 이해하는 것입니다.
 
 ## Starter Kit 실행절차 요약
 다음 절차를 따르면 간편하게 Starter Kit을 실행할 수 있습니다.
@@ -50,8 +50,8 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 - `device_http_x.js` : 해당 파일은  device.js파일의 http 버전입니다.
 - `application_web.js` : Express.js를 사용한 Web API 서버로 Sample Web Application에서 호출하는 backend 서버의 역할을 합니다. `device.js`에서 ThingPlug로 전송한 데이터를 사용자에게 보여주거나 웹페이지로부터 명령을 받아 ThingPlug 서버를 통해 실제 device를 제어하기도 합니다.
 - `public/` : Sample Web Application의 html, css, javascript 등 정적 파일 목록입니다.
-- `notification/` : trigger 발생시 문제를 notify하기 위한 E-MAIL관련 파일이 있습니다. E-MAIL은 nodemailer를 활용해 전송을 하는 방식을 활용하였으며, 이외에도 다양한 방법을 응용할 수 있습니다.
-- `config.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
+- `notification/` : trigger 발생시 문제를 notify하기 위한 E-MAIL관련 파일이 있습니다. 현재 E-MAIL은 nodemailer api를 활용해 전송을 하는 방식을 활용하였으며, 이외에도 개발자가 nodejs의 library를 통해 다양한 방법을 응용할 수 있습니다.
+- `config_x.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
 
 > 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
 	1. config_x.js와 device_x.js파일을 추가 또는 삭제<br>
@@ -85,7 +85,7 @@ CSE_ID는 디바이스를 oneM2M에서 구분하기 위해 주민번호처럼 �
 
 ```javascript
 module.exports = {
-  uKey : 'USER_KEY', // Thingplug(https://thingplugpf.sktiot.com) 로그인 후, `마이페이지`에 있는 사용자 인증키
+  uKey : 'USER_KEY', // Thingplug(https://thingplug.sktiot.com) 로그인 후, `마이페이지`에 있는 사용자 인증키
   nodeID : 'LTID', // Device 구분을 위한 LoRa-ThingPlug ID
   passCode : '000101', // ThingPlug에 Device등록 시 사용할 Device의 비밀번호
   appID : 'myApplication', //Application의 구분을 위한 ID

@@ -73,10 +73,6 @@ npm install
 ### config.js 수정
 Starter Kit이 실질적으로 동작하기 위해서는 개발자 계정정보 및 디바이스 정보를 개발자 상황에 맞게 수정해야합니다. `config.js_sample`파일을 `config.js`파일로 복사한 후 `config.js`를 에디터에서 열고 각 항목 오른쪽에 달린 주석 설명과 아래 설명을 참고하여 수정하세요.
 
-#### CSE_ID 란?
-
-CSE_ID는 디바이스를 oneM2M에서 구분하기 위해 주민번호처럼 디바이스마다 부여되는 고유의 식별자입니다. 스타터킷을 위한 CSE_ID는 `LTID`이며 이는 AppEUI와 DevEUI를 합쳐 만든 고유의 ID입니다.  LTID는 당사 규격에서 신규 정의한 값으로서 **Globally Unique**한 값입니다.
-
 ```javascript
 module.exports = {
   uKey : 'USER_KEY', // Thingplug 로그인 후, `마이페이지`에 있는 사용자 인증키

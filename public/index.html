@@ -69,6 +69,49 @@ vertical-align:baseline
 	position:relative;
 	top:1px;
 }
+
+.map_frame_head{
+	
+}
+
+.sensor_frame{
+	background-color : white; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto; margin:auto;
+}
+.sensor_frame_head{
+	font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 10px; align: left;
+}
+.sensor_frame_body{
+ 	color : #ea002c; border-color : gainsboro; border-width : 2; border-style : none none solid none;	
+}
+
+.sensor_frame_body_value{
+ 		font-size:140; line-height: 200px; text-align:right; text-shadow:2px 2px #8C8C8C;
+}
+.sensor_frame_body_unit{
+ 		font-size:100; color:black; line-height: 200px; text-align:left; text-shadow:2px 2px #8C8C8C;
+}
+
+.action_frame{
+	background-color : gainsboro; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto;
+}
+.action_frame_head{
+	background-color : white; font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 20px; align: left
+}
+
+.trigger_head_frame{
+	font-size:20; border-color : white; border-width : thin; border-style : none none solid none; align: center
+}
+.trigger_frame{
+	border-color : lightGray; border-width : 2; border-style : solid; border-radius: 10px; height: auto; margin:auto
+}
+.trigger_frame_head{
+	background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid
+}
+
+
+
+
+					
 </style>
 <link rel="stylesheet" href="./css/styles.css">
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
@@ -86,7 +129,6 @@ vertical-align:baseline
 <script>
   </script>
 <body style="font-family: Moebius">
-<!--background-image : url(http://designers-tips.com/wp-content/uploads/2012/06/karafurudot3.jpg); background-size : 100% 100%;-->
 <div class="nav">
 	<ul>
 		<div class="container">
@@ -108,7 +150,7 @@ vertical-align:baseline
 	</div>
 	<h1 class="page-header" align="center"> Device Status Monitoring </h1>
 	<div class="container" align="center" style="vertical-align: middle; ">
-		<div class="row" style="">
+		<div class="row">
 			<div class="col-sm-6 col-md-12" style="background-color : lightGray; border-radius: 15px; height: auto">
 				<div class="row" style="font-size:20; border-color : white; border-width : thin; border-style : none none solid none; " align="left">
 					<div class="col-sm-1 col-xs-1">
@@ -123,7 +165,6 @@ vertical-align:baseline
 					<div class="col-sm-2 col-xs-4" align="Right">
 						 Dev ID :
 					</div>
-					<!--<div class="col-sm-4"align="left" id="NodeID_value"> NodeID</div>-->
 					<div class="col-sm-4 col-xs-8" align="left" id="NodeID">
 						 ...
 					</div>
@@ -158,8 +199,8 @@ vertical-align:baseline
 		</div>
 		<br>
 		<div class="row">
-			<div class="col-sm-4" style="background-color : white; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto; margin:auto">
-				<div class="row" style="font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 10px; " align="left">
+			<div class="col-sm-4 sensor_frame">
+				<div class="row sensor_frame_head">
 					<div class="col-sm-2 col-xs-2">
 						<img src="https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-starter-kit/master/images/sensor.png" style="width: auto; height: 30">
 					</div>
@@ -171,18 +212,18 @@ vertical-align:baseline
 					</div>
 				</div>
 				<div class="row" style="color : #ea002c; border-color : gainsboro; border-width : 2; border-style : none none solid none;">
-					<div class="col-sm-7 col-xs-7" style="font-size:140; line-height: 200px; text-align:right; text-shadow:2px 2px #8C8C8C" id="temp_value">
+					<div class="col-sm-7 col-xs-7 sensor_frame_body_value" id="temp_value">
 						0
 					</div>
-					<div class="col-sm-5 col-xs-5" style="font-size:100; color:black;line-height: 200px ; text-align:left; text-shadow:2px 2px #8C8C8C">
+					<div class="col-sm-5 col-xs-5 sensor_frame_body_unit">
 						&#x2103;
 					</div>
 				</div>
 				<div id="graph_temp" class="graph_temp" style="max-width: 100%; height: 256; display:block;">
 				</div>
 			</div>
-			<div class="col-sm-4" style="background-color : white; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto; margin:auto">
-				<div class="row" style="font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 10px; " align="left">
+			<div class="col-sm-4 sensor_frame">
+				<div class="row sensor_frame_head">
 					<div class="col-sm-2 col-xs-2">
 						<img src="https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-starter-kit/master/images/sensor.png" style="width: auto; height: 30">
 					</div>
@@ -193,19 +234,19 @@ vertical-align:baseline
 						<img src="http://online.focusky.com/qfsz/hfwy/files/extfiles/ext_020151130222331720.png" style="max-width: 100%; height: 30;">
 					</div>
 				</div>
-				<div class="row" style="color : #ea002c; border-color : gainsboro; border-width : 2; border-style : none none solid none;">
-					<div class="col-sm-7 col-xs-7" style="font-size:140; line-height: 200px; text-align:right; text-shadow:2px 2px #8C8C8C" id="humid_value">
+				<div class="row sensor_frame_body">
+					<div class="col-sm-7 col-xs-7 sensor_frame_body_value" id="humid_value">
 						0
 					</div>
-					<div class="col-xs-5 col-xs-5" style="font-size:100; color:black; line-height: 200px ; text-align:left; text-shadow:2px 2px #8C8C8C">
+					<div class="col-xs-5 col-xs-5 sensor_frame_body_unit">
 						%
 					</div>
 				</div>
 				<div id="graph_humid" class="graph_humid" style="max-width: 100%; height: 256; display:block;">
 				</div>
 			</div>
-			<div class="col-sm-4" style="background-color : white; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto; margin:auto">
-				<div class="row" style="font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 10px; " align="left">
+			<div class="col-sm-4 sensor_frame">
+				<div class="row sensor_frame_head">
 					<div class="col-sm-2 col-xs-2">
 						<img src="https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-starter-kit/master/images/sensor.png" style="width: auto; height: 30">
 					</div>
@@ -216,11 +257,11 @@ vertical-align:baseline
 						<img src="http://image000.flaticon.com/icons/svg/148/148819.svg" style="max-width: 100%; height: 30;">
 					</div>
 				</div>
-				<div class="row" style="color : #ea002c; border-color : gainsboro; border-width : 2; border-style : none none solid none">
-					<div class="col-sm-7 col-xs-7" style="font-size:140; text-align:right; text-shadow:2px 2px #8C8C8C" id="lux_value">
+				<div class="row sensor_frame_body">
+					<div class="col-sm-7 col-xs-7 sensor_frame_body_value" id="lux_value">
 						0
 					</div>
-					<div class="col-sm-5 col-xs-5" style="font-size:100; color:black; line-height: 200px; text-align:left; text-shadow:2px 2px #8C8C8C">
+					<div class="col-sm-5 col-xs-5 sensor_frame_body_unit">
 						lux
 					</div>
 				</div>
@@ -230,8 +271,8 @@ vertical-align:baseline
 		</div>
 		<br>
 		<div class="row">
-			<div class="col-sm-4" style="background-color : gainsboro; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto">
-				<div class="row" style="background-color : white; font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 20px; " align="left">
+			<div class="col-sm-4 action_frame">
+				<div class="row action_frame_head">
 					<div class="col-sm-2 col-xs-2">
 						<img src="http://image000.flaticon.com/icons/svg/99/99086.svg" style="width: 100%; height: 30">
 					</div>
@@ -250,8 +291,8 @@ vertical-align:baseline
 					</div>
 				</div>
 			</div>
-			<div class="col-sm-4" style="background-color : gainsboro; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto">
-				<div class="row" style="background-color : white; font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 20px; " align="left">
+			<div class="col-sm-4 action_frame">
+				<div class="row action_frame_head">
 					<div class="col-sm-2 col-xs-2">
 						<img src="http://image000.flaticon.com/icons/svg/99/99086.svg" style="width: 100%; height: 30">
 					</div>
@@ -279,8 +320,8 @@ vertical-align:baseline
 					</div>
 				</div>
 			</div>
-			<div class="col-sm-4" style="background-color : gainsboro; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto">
-				<div class="row" style="background-color : white; font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 20px; " align="left">
+			<div class="col-sm-4 action_frame">
+				<div class="row action_frame_head">
 					<div class="col-sm-2 col-xs-2">
 						<img src="http://image000.flaticon.com/icons/svg/99/99086.svg" style="width: 100%; height: 30">
 					</div>
@@ -303,7 +344,7 @@ vertical-align:baseline
 		<br>
 		<div class="row">
 			<div class="col-sm-6 col-md-12" style="background-color : lightGray; border-radius: 15px; height: auto">
-				<div class="row" style="font-size:20; border-color : white; border-width : thin; border-style : none none solid none; " align="center">
+				<div class="row trigger_head_frame">
 					<div class="col-sm-1 col-xs-1">
 						<img src="http://icons.iconarchive.com/icons/fps.hu/free-christmas-flat-circle/512/bell-icon.png" style="width: auto; height: 28; margin:1">
 					</div>
@@ -312,8 +353,8 @@ vertical-align:baseline
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-sm-3" style="border-color : lightGray; border-width : 2; border-style : solid; border-radius: 10px; height: auto; margin:auto">
-						<div class="row" style="background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid">
+					<div class="col-sm-3 trigger_frame">
+						<div class="row trigger_frame_head">
 							<div class="col-sm-2 col-xs-2" style="color:ea002c; font-style:bold">
 								Ⅰ
 							</div>
@@ -330,8 +371,8 @@ vertical-align:baseline
 							</select>
 						</div>
 					</div>
-					<div class="col-sm-3" style="border-color : lightGray; border-width : 2; border-style : solid; border-radius: 10px; height: auto; margin:auto">
-						<div class="row" style="background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid">
+					<div class="col-sm-3 trigger_frame">
+						<div class="row trigger_frame_head">
 							<div class="col-sm-2 col-xs-2" style="color:ea002c; font-style:bold">
 								Ⅱ
 							</div>
@@ -348,8 +389,8 @@ vertical-align:baseline
 							</select>
 						</div>
 					</div>
-					<div class="col-sm-3" style="border-color : lightGray; border-width : 2; border-style : solid; border-radius: 10px; height: auto; margin:auto">
-						<div class="row" style="background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid">
+					<div class="col-sm-3 trigger_frame">
+						<div class="row trigger_frame_head">
 							<div class="col-sm-2 col-xs-2" style="color:ea002c; font-style:bold">
 								Ⅲ
 							</div>
@@ -361,8 +402,8 @@ vertical-align:baseline
 							<input type="text" id="trigger_value" name="trigger_value" value="30" style="text-align:center; width:100%; height: 34px; color:lightGray" onfocus="this.value='';this.style.color='black';return true" width="100%"></input>
 						</div>
 					</div>
-					<div class="col-sm-3" style="border-color : lightGray; border-width : 2; border-style : solid; border-radius: 10px; height: auto; margin:auto">
-						<div class="row" style="background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid">
+					<div class="col-sm-3 trigger_frame">
+						<div class="row trigger_frame_head">
 							<div class="col-sm-2 col-xs-2" style="color:ea002c; font-style:bold">
 								Ⅳ
 							</div>

@@ -73,10 +73,6 @@ npm install
 ### config.js 수정
 Starter Kit이 실질적으로 동작하기 위해서는 개발자 계정정보 및 디바이스 정보를 개발자 상황에 맞게 수정해야합니다. `config.js_sample`파일을 `config.js`파일로 복사한 후 `config.js`를 에디터에서 열고 각 항목 오른쪽에 달린 주석 설명과 아래 설명을 참고하여 수정하세요.
 
-#### CSE_ID 란?
-
-CSE_ID는 디바이스를 oneM2M에서 구분하기 위해 주민번호처럼 디바이스마다 부여되는 고유의 식별자입니다. 스타터킷을 위한 CSE_ID는 `LTID`이며 이는 AppEUI와 DevEUI를 합쳐 만든 고유의 ID입니다.  LTID는 당사 규격에서 신규 정의한 값으로서 **Globally Unique**한 값입니다.
-
 ```javascript
 module.exports = {
   uKey : 'USER_KEY', // Thingplug 로그인 후, `마이페이지`에 있는 사용자 인증키
@@ -104,7 +100,7 @@ content-location: /APP_EUI/APP_version/node-LTID
 
 2. remoceCSE 생성 요청
 remoteCSE 생성 결과
-다비이스 키 : 64based encoding value==//(ThingPlug에서 발급받은 값)
+다비이스 키 : 64based encoding value//(ThingPlug에서 발급받은 값)
 content-location: /APP_EUI/APP_version/remoteCSE-LTID
 
 3. container 생성 요청
@@ -229,8 +225,8 @@ client.on('message', function(topic, message){
 
 ## FAQ
 
-#### device 실행 시 마다 매번 CSE_ID를 등록해야하는 건가요?
-아닙니다. 디바이스마다 최초 1회만 CSE_ID를 등록하면 됩니다. 본 스타터킷에서는 디바이스 실행 시 매번 CSE_ID를 등록하도록 되어 있습니다. 이 경우에도 문제가 되는 것은 아닙니다.  같은 ID로 만드려고 하는 경우conflict ( HTTP : 409, MQTT : 4015) 메시지가 발생할것입니다.
+#### device 실행 시 마다 매번 Resource를 등록해야하는 건가요?
+아닙니다. 디바이스마다 최초 1회만 Resource를 등록하면 됩니다. 본 스타터킷에서는 디바이스 실행 시 매번 Resource를 등록하도록 되어 있습니다. 이 경우에도 문제가 되는 것은 아닙니다. 다만 같은 ID로 만드려고 하는 경우conflict ( HTTP : 409, MQTT : 4015) 메시지가 발생할것입니다.
 
 #### 마이페이지에 사용자 인증키가 없는데요?
 ThingPlug 회원가입 입력양식에 있는 디바이스 연동 프로토콜 선택을 반드시 HTTP로 선택해야 합니다. 그렇지 않을 경우 oneM2M API를 이용할 수 없습니다. 가입시에만 선택이 가능하기 때문에 새로운 아이디로 새 계정을 만들고 가입 입력양식에서 꼭 HTTP로 선택해주세요.

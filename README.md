@@ -75,15 +75,22 @@ Starter Kit이 실질적으로 동작하기 위해서는 개발자 계정정보 
 
 ```javascript
 module.exports = {
-  uKey : 'USER_KEY', // Thingplug 로그인 후, `마이페이지`에 있는 사용자 인증키
-  nodeID : 'LTID', // Device 구분을 위한 LoRa-ThingPlug ID
-  passCode : '000101', // ThingPlug에 Device등록 시 사용할 Device의 비밀번호
-  appID : 'myApplication', //Application의 구분을 위한 ID
-  containerName:'LoRa', // starter kit에서 생성하고 사용할 container 이름 (임의지정)
-  DevReset : 'DevReset', // LoRa 디바이스 리셋을 위한 mgmtCmd
-  RepPerChange : 'RepPerChange', // LoRa 디바이스의 Uplink(주기 보고) 주기 변경을 위한 mgmtCmd
-  RepImmediate : 'RepImmediate', // LoRa 디바이스의 Uplink(주기 보고) 즉시 보고를 위한 mgmtCmd
-  cmdType : 'sensor_1' // starter kit에서 사용할 제어 타입 (임의지정)
+  AppEUI : 'AppEUI', 							// Application EUI
+  version : 'version', 							// Application의 version
+  TPhost : '211.115.15.160', 					// ThingPlug의 HOST Addresss
+  TPport : '9000', 								// ThingPlug의 HTTP PORT 번호
+  responseAddress : 'HTTP|http://0.0.0.0:0000', // HTTP버전에서 디바이스 제어를 위한 디바이스의 물리적 주소 mga
+  responsePORT : '0000',						// HTTP버전에서 디바이스제어를 위한 디바이스의 물리적 주소 mga 포트
+  userID : 'userID',							// MQTT버전에서 Broker 접속을 위한 ID
+  uKey : 'USER_KEY', 							// Thingplug로그인 후, `마이페이지`에 있는 사용자 인증키
+  nodeID : 'LTID', 								// Device 구분을 위한 LTID
+  passCode : '000101', 							// ThingPlug에 Device등록 시 사용할 Device의 비밀번호
+  appID : 'myApplication', 						// Application의 구분을 위한 ID
+  containerName:'LoRa', 						// starter kit에서 생성하고 사용할 container 이름 (임의지정)
+  DevReset : 'DevReset', 						// starter kit에서 생성하고 사용할 제어 명령 DevReset
+  RepPerChange : 'RepPerChange', 				// starter kit에서 생성하고 사용할 제어 명령 RepPerChange
+  RepImmediate : 'RepImmediate', 				// starter kit에서 생성하고 사용할 제어 명령 RepImmediate
+  cmdType : 'sensor_1' 							// starter kit에서 사용할 제어 타입 (임의지정)
 };
 ```
 
@@ -139,7 +146,7 @@ content : 32,74,91 //온도, 습도, 조도 가상값
 애플리케이션에서 ThingPlug oneM2M REST API를 통해 데이터를 필요에 따라 제어명령을 보내기 위해서는 먼저 ThingPlug 사이트에 위 device(생성된 remoteCSE)를 등록해야합니다.
 
 - [ThingPlug] 로그인 후 "마이페이지 > 나의 디바이스 > 디바이스 등록" 페이지로 이동합니다.
-- 위에서 device 실행 시 사용한 `config.js`의 디바이스 아이디(cse_ID)와 passCode를 개별등록에 입력하고 `디바이스 정보확인` 버튼을 누릅니다.
+- 위에서 device 실행 시 사용한 `config.js`의 디바이스 아이디(LTID)와 passCode를 개별등록에 입력하고 `디바이스 정보확인` 버튼을 누릅니다.
 - 필수정보 입력화면에 내용을 해당 내용을 넣어준 후 하단 '저장'버튼을 누르면 ThingPlug에 Device 등록이 완료됩니다.
 
 
@@ -217,6 +224,7 @@ client.on('message', function(topic, message){
 ![web page](https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-lora-starter-kit/master/images/web.png)
 
 
+
 ## 환영합니다. 당신은 이제 ThingPlug LoRa IoT User입니다.
 어떠세요? 벌써 Starter Kit을 이용하여 SK ThingPlug LoRa 사용에 필요한 구성요소를 준비 완료했습니다. 이제 Application과 Device의 코드를 시작점으로 원하는 서비스를 만들어보세요. 서비스를 개발해 나가는 과정에서 생겨나는 궁금증은 [ThingPlug 개발자 커뮤니티](https://sandbox.sktiot.com/IoTPortal/cmmnty/cmmntyList)를 이용해주세요.
 
@@ -230,3 +238,9 @@ client.on('message', function(topic, message){
 
 #### 마이페이지에 사용자 인증키가 없는데요?
 ThingPlug 회원가입 입력양식에 있는 디바이스 연동 프로토콜 선택을 반드시 HTTP로 선택해야 합니다. 그렇지 않을 경우 oneM2M API를 이용할 수 없습니다. 가입시에만 선택이 가능하기 때문에 새로운 아이디로 새 계정을 만들고 가입 입력양식에서 꼭 HTTP로 선택해주세요.
+
+#### MQTT connect가 되지 않습니다
+ThingPlug ID와 uKey가 config파일에 제대로 입력이 되었는지 확인해주세요. 그리고 clientId가 다른사람과 겹치는 경우 간혹 문제가 발생할 수 있으니 주의하여 주십시오
+
+#### 센서값이 보이지 않습니다
+ThingPlug 포털에 디바이스를 등록하였는지 확인해주세요. 등록하지 않은경우 uKey mapping이 되지 않아 Application에서 디바이스로 접근이 되지 않습니다. 

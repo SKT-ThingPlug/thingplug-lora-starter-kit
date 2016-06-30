@@ -16,9 +16,9 @@ var data = {
 var body = JSON.stringify(data);
 
 var options = {
-  host: 'api.bluehouselab.com',
+  host: 'sample',
   port: 443,
-  path: '/smscenter/v1.0/sendsms',
+  path: 'sample',
   headers: {
     'Authorization': credential,
     'Content-Type': 'application/json; charset=utf-8',

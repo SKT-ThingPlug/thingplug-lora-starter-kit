@@ -8,14 +8,8 @@ var app = express();
 
 var config = [];
 var config_h = [];
-var configInedex = 0;
+var configIndex = 0;
 var numOfDevice = 2;
-
-var TPhost = '211.115.15.160';
-var TPport = '9000';
-var AppEUI = '/0000000000000001';
-var version = '/v1_0';
-
 
 var sms = require('./notification/sendsms').request;
 var nodemailer = require('./notification/mail').request;
@@ -29,19 +23,35 @@ app.use('/dashboard', express.static(path.join(__dirname,'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//config 등록
+//------------------------------------------------------config 정보 load-------------------------------------------------------//
+
 for (var j =0; j < numOfDevice; j++) {
 	config.push(require('./config_'+(j+1).toString()));
 	config_h.push('/config_'+(j+1).toString());
 }
 
-//지도에서 클릭만 node 관련 config return
+
+
+//지도에서 클릭 후 node 관련 config return
 app.get(config_h, function(req,res) {
-  configInedex = parseInt(req.originalUrl[8])-1;
-  res.send(config[configInedex]);
+  configIndex = parseInt(req.originalUrl[8])-1;
+  res.send(config[configIndex]);
 });
 
-//현재 node의 getLatestContainer
+//=============================================================================================================================//
+
+
+
+//--------------------------------------------Request ID를 생성하기 위한 RandomInt Function------------------------------------//
+function randomInt (low, high) {
+	return Math.floor(Math.random() * (high - low + 1) + low);
+}
+//=============================================================================================================================//
+
+
+
+//----------------------------------------- 1. Container에 저장된 최신 값 조회(Retrieve)---------------------------------------//
+
 app.get('/data/:container', function(req,res) {
   var container = req.params.container;
  
@@ -50,19 +60,23 @@ app.get('/data/:container', function(req,res) {
     else return res.send(data.cin);
   });
 });
+//=============================================================================================================================//
 
-//현재 node에 reqMgmtCmd
+//---------------------------------------------------- 2. mgmCmd 요청----------------------------------------------------------//
+
 app.post('/control', function(req,res) {
   var cmd = JSON.stringify(req.body);
   console.log("{\"cmd\":\""+req.body.cmd+"\"}");
-  reqMgmtCmd(req.body.cmt, "{\"cmd\":\""+req.body.cmd+"\"}", config[configInedex].nodeRI, function(err, data){
+  reqMgmtCmd(req.body.cmt, "{\"cmd\":\""+req.body.cmd+"\"}", config[configIndex].nodeRI, function(err, data){
 
     if(err) return res.send({'error':err});
     return res.send({'result':'ok'});
   });
 });
+//=============================================================================================================================//
 
-//현재 node관련 trigger notify
+//-----------------------------------------------------Event 발생시 알림-------------------------------------------------------//
+
 app.post('/email', function(req,res) {
 	var cmd =req.body;
 	nodemailer(cmd);
@@ -80,6 +94,7 @@ app.post('/sms', function(req,res) {
 	
   return res.send('result : ok');
 });
+//=============================================================================================================================//
 
 
 var server = http.createServer(app);
@@ -93,21 +108,19 @@ function randomInt (low, high) {
 
 var httpReq = require('./promise-http').request;
 
-
-function getLatestContainer(cb){	
-// 1. ContentInstance를 활용한 서버에 저장된 센서 값 조회(Retrieve)
+//-------------------------------- 1. Container에 저장된 최신 값 조회(Retrieve)----------------------------------------//
+function getLatestContainer(cb){
 httpReq({ 
   options: {
-    host : TPhost,
-    port: TPport,
-    path : AppEUI+version+'/remoteCSE-'+ config[configInedex].nodeID+ '/container-'+config[configInedex].containerName+'/latest',
+    host : config[configIndex].TPhost,
+    port : config[configIndex].TPport,
+    path : '/'+config[configIndex].AppEUI+'/'+config[configIndex].version+'/remoteCSE-'+ config[configIndex].nodeID+ '/container-'+config[configIndex].containerName+'/latest',
     method: 'GET',
     headers : {
-      Accept: 'application/json',
-      locale: 'ko',
-      uKey : config[configInedex].uKey,
-      'X-M2M-RI': randomInt(100000, 999999),
-      'X-M2M-Origin': config[configInedex].appID
+      'Accept': 'application/json',											//Response 받을 형태를 JSON으로 설정
+       uKey : config[configIndex].uKey,										//Thingplug 포털 로그인 후, `마이페이지`에 있는 사용자 인증키
+      'X-M2M-RI': config[configIndex].nodeID+'_'+randomInt(100000, 999999),	//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID)
+      'X-M2M-Origin': config[configIndex].nodeID							//해당 요청 메시지 송신자의 식별자
     }
   }
 }).then(function(result){
@@ -118,28 +131,32 @@ httpReq({
 });
 }
 
+//=============================================================================================================================//
+
+//---------------------------------------------------- 2. mgmCmd 요청----------------------------------------------------------//
+
 
 function reqMgmtCmd(mgmtCmdPrefix, cmd, nodeRI, cb){
 // 2. mgmCmd 요청
 	httpReq({ 
     options: {
-      host : TPhost,
-      port: TPport,
-      path : AppEUI+version+'/mgmtCmd-'+config[configInedex].nodeID + '_' + mgmtCmdPrefix,
+      host : config[configIndex].TPhost,
+      port : config[configIndex].TPport,
+      path : '/'+config[configIndex].AppEUI+'/'+config[configIndex].version+'/mgmtCmd-'+config[configIndex].nodeID + '_' + mgmtCmdPrefix,
       method: 'PUT',
       headers : {
         Accept: 'application/json',
-        uKey : config[configInedex].uKey,
-        'X-M2M-Origin': config[configInedex].appID,
-        'X-M2M-RI': randomInt(100000, 999999),
+        uKey : config[configIndex].uKey,
+        'X-M2M-Origin': config[configIndex].nodeID,
+        'X-M2M-RI': config[configIndex].nodeID+'_'+randomInt(100000, 999999),
 		'Content-Type': 'application/json;ty=8'
 	  }
       },
 		body : {mgc:{
-    exra : cmd,			//제어 요청(일반적으로 원격 장치를 RPC호출)을 위한 Argument 정의 (exra == execReqArgs)
+    exra : cmd,						//제어 요청(일반적으로 원격 장치를 RPC호출)을 위한 Argument 정의 (exra == execReqArgs)
     exe : true,						//제어 요청 Trigger 속성으로 해당 속성은 (True/False로 표현) (exe == execEnabler)
-	cmt : mgmtCmdPrefix,
-	ext : nodeRI
+	cmt : mgmtCmdPrefix,			//장치 제어 형태 (예, RepImmediate, DevReset, RepPerChange 등) / (cmt == cmdType)
+	ext : nodeRI					//NODE의 Resource ID
   }}
 }).then(function(result){
   console.log(colors.green('mgmtCmd 제어 요청'));
@@ -150,3 +167,4 @@ function reqMgmtCmd(mgmtCmdPrefix, cmd, nodeRI, cb){
   
 });
 }
+//=============================================================================================================================//

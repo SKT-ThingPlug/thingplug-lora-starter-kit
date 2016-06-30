@@ -25,7 +25,7 @@ jQuery(document).ready(function() {
 	var MAX_DATA = 30;
 	
 	var recent_ri = 0;
-	var container_name = 'myContainer';
+	var container_name = 'LoRa';
 
 	var nodeID = [];  
 
@@ -54,14 +54,15 @@ jQuery(document).ready(function() {
 	};
 
 	
-	var trigger_sensor = null;
-	var trigger_if = null;
-	var trigger_value = null;
-	var trigger_way = null;
-	var trigger_nodeID = null;
-	var output_string = null;
+	var trigger_sensor = null;	//센서 종류
+	var trigger_if = null;		//트리거 옵션(크다, 작다, 같다)
+	var trigger_value = null;	//트리거 기준 값
+	var trigger_way = null;		//알림방식
+	var trigger_nodeID = null;	//알림받을 nodeID
+	var output_string = null;	//메시지
 	
-	/* graph Related Variables */
+//----------------------------------------- graph Related Variables---------------------------------------//
+
 	var color_temp = d3.scale.category10();
 	color_temp.domain(['Sensor_temp']);
 	var temp_obj = {
@@ -138,7 +139,8 @@ jQuery(document).ready(function() {
 	};
 
 	/* end of graph Related Variables */
-	///////////////////////////////////////////////////  
+//=============================================================================================================================//
+
 	
 
 
@@ -174,7 +176,9 @@ jQuery(document).ready(function() {
 			}
 		});
 	}
-	
+//=============================================================================================================================//
+
+//--------------------------------nodeID 및 Firmware Version 초기화---------------------------------------------------------------//
 	
 	function callnodeID() {
 		for(var i=0;i<numOfDevice;i++) {
@@ -187,7 +191,10 @@ jQuery(document).ready(function() {
 		nodeIndex=0;
 	}
 	callnodeID();
-	///////////////////////////////////////////
+//=============================================================================================================================//
+
+//-----------------------------------------------------Event 발생시 알림-------------------------------------------------------//
+
 	function sendmail(cb) {
 		var url = '/email';
 
@@ -217,10 +224,18 @@ jQuery(document).ready(function() {
 		});
 		
 	}
+//=============================================================================================================================//
+
+
+//-----------------------------------------------------지도 초기화 및 표시-------------------------------------------------------//
 
 	function initMap() {
-		var myLatLng = [{lat: 37.44, lng: 127.00},
-		{lat: 37.55, lng: 127.11}];
+		var myLatLng = [];
+		
+		for (var i =0; i < numOfDevice; i++) {
+			myLatLng.push({lat: 37.54+(0.03*Math.floor(Math.random() * numOfDevice)), lng: 127.00+(0.05*Math.floor(Math.random() * numOfDevice))});
+		}
+		
 		
 		map = new google.maps.Map(document.getElementById('map'), {
 			center: myLatLng[0],
@@ -282,7 +297,12 @@ jQuery(document).ready(function() {
 			};
 		}	
 
-	} 
+	}
+
+	initMap();
+//=============================================================================================================================//
+
+//-----------------------------------------------------그래프 초기화 및 생성-------------------------------------------------------//
 
 	function creategraph(obj) {
 		obj._color.domain("Sensor_"+obj.id);
@@ -360,6 +380,13 @@ jQuery(document).ready(function() {
 		obj._path
 		.attr("d", function(d) { return obj._line(d.values); })
 	}
+	
+	creategraph(temp_obj);
+	creategraph(humid_obj);
+	creategraph(lux_obj);
+//=============================================================================================================================//
+
+//-----------------------------------------------------container로부터 받은 데이터 처리-------------------------------------------------------//
 
 	function getData(container, cb) {
 		var url = '/data/' + container;
@@ -395,6 +422,9 @@ jQuery(document).ready(function() {
 		$(name)[0].innerText = dest[0];
 		
 	}  
+//=============================================================================================================================//
+
+//-----------------------------------------------------mgmtCmd 버튼 클릭시 팝업-------------------------------------------------------//
 
 	function initToastOptions(){
 		toastr.options = {
@@ -417,12 +447,16 @@ jQuery(document).ready(function() {
 	}
 
 	initToastOptions();
+//=============================================================================================================================//
 
-	creategraph(temp_obj);
-	creategraph(humid_obj);
-	creategraph(lux_obj);
-
-	initMap();
+//-------------------------------------주기적으로 조회된 최신 데이터 처리---------------------------------------//
+	
+	getConfig( function(err,config) {
+		if(data){ 
+			container_name = config.containerName;
+		}
+	});
+		
 	setInterval(function(){
 		
 		getData(container_name, function(err,time,data_prim){
@@ -454,15 +488,9 @@ jQuery(document).ready(function() {
 		updategraph(humid_obj);
 		updategraph(lux_obj);
 
-		
-		getConfig( function(err,config) {
-			if(data){ 
-				container_name = config.containerName;
-				
-			}
-		});
-		
-		
+//=============================================================================================================================//
+
+//-------------------------------------Trigger 설정한 경우 처리---------------------------------------//
 
 		
 		var isTrue = false;
@@ -497,6 +525,7 @@ jQuery(document).ready(function() {
 		
 	}, period*1000);
 
+//=============================================================================================================================//
 
 	var mapInterval = setTimeout(
 	function(){
@@ -504,6 +533,9 @@ jQuery(document).ready(function() {
 	}, 500);
 
 
+//=============================================================================================================================//
+
+//-------------------------------------DevReset 버튼 클릭---------------------------------------//
 
 	$('#DevReset').on('click', function(event) {
 		$.post('/control',{cmt:'DevReset', cmd:'request'}, function(data,status){
@@ -511,6 +543,10 @@ jQuery(document).ready(function() {
 			console.log(data);
 		});
 	});
+//=============================================================================================================================//
+
+//-------------------------------------RepPerChange 버튼 클릭---------------------------------------//
+	
 	$('#RepPerChange').on('click', function(event) {
 		$.post('/control', {cmt:'RepPerChange', cmd: document.getElementById('input_value').value}, function(data,status){
 			toastr.info('Period Changed');
@@ -518,6 +554,10 @@ jQuery(document).ready(function() {
 			period=document.getElementById('input_value').value;
 		});
 	});
+//=============================================================================================================================//
+
+//-------------------------------------RepImmediate 버튼 클릭---------------------------------------//
+
 	$('#RepImmediate').on('click', function(event) {
 		$.post('/control', {cmt:'RepImmediate',cmd:'request'}, function(data,status){
 			toastr.warning('Ariconditioner ON');
@@ -525,7 +565,9 @@ jQuery(document).ready(function() {
 			Firm_Ver[nodeIndex] = '1.0.0';
 		});
 	});
+//=============================================================================================================================//
 
+//-------------------------------------Trigger Register 버튼 클릭---------------------------------------//
 	$('#action_button').on('click', function(event) {
 
 		
@@ -560,7 +602,7 @@ jQuery(document).ready(function() {
 				alert('Sent SMS'+ output_string);
 			});
 		}
-		else if(trigger_way == "E-Mail" && sign_if){
+		else if(trigger_way == "E-Mail" && sign_if){//메일로 알림을 설정한 경우
 			emailOptions.text = output_string;
 			emailOptions.to = document.getElementById('action_type_value').value;
 			sendmail( function(err,emailOptions) {
@@ -569,5 +611,6 @@ jQuery(document).ready(function() {
 			
 		}
 	});
+//=============================================================================================================================//
 
 });

@@ -1,0 +1,448 @@
+<html>
+<head>
+<style>
+	  #map {
+		width: 100%;
+		height: 350;
+		margin: 0;
+	  }
+	 #cell {display:table-cell; vertical-align:middle;} 
+.nav ul {
+  background-color: #ea002c;
+  min-height:50px;
+  vertical-align:central;
+}
+.jumbotron{
+    width:100%;
+    height: auto;
+    background-color:#f39c12;
+    padding:0px;
+    margin:0px;
+    opacity: 0.7;
+}
+.foot { 
+min-height:100px;
+height: auto; 
+background: #3c3c3c; 
+vertical-align:baseline
+} 
+@font-face {
+    font-family: 'Moebius';
+    src: url(./Moebius_Regular_eng.ttf) format('truetype');
+}
+.myButton {
+	-moz-box-shadow:inset 0px 1px 0px 0px #cf866c;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #cf866c;
+	box-shadow:inset 0px 1px 0px 0px #cf866c;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #ea002c), color-stop(1, #bc3315));
+	background:-moz-linear-gradient(top, #ea002c 5%, #bc3315 100%);
+	background:-webkit-linear-gradient(top, #ea002c 5%, #bc3315 100%);
+	background:-o-linear-gradient(top, #ea002c 5%, #bc3315 100%);
+	background:-ms-linear-gradient(top, #ea002c 5%, #bc3315 100%);
+	background:linear-gradient(to bottom, #ea002c 5%, #bc3315 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ea002c', endColorstr='#bc3315',GradientType=0);
+	background-color:#ea002c;
+	-moz-border-radius:12px;
+	-webkit-border-radius:12px;
+	border-radius:12px;
+	border:1px solid #942911;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Moebius;
+	font-size:18px;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #854629;
+}
+.myButton:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #bc3315), color-stop(1, #ea002c));
+	background:-moz-linear-gradient(top, #bc3315 5%, #ea002c 100%);
+	background:-webkit-linear-gradient(top, #bc3315 5%, #ea002c 100%);
+	background:-o-linear-gradient(top, #bc3315 5%, #ea002c 100%);
+	background:-ms-linear-gradient(top, #bc3315 5%, #ea002c 100%);
+	background:linear-gradient(to bottom, #bc3315 5%, #ea002c 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#bc3315', endColorstr='#ea002c',GradientType=0);
+	background-color:#bc3315;
+}
+.myButton:active {
+	position:relative;
+	top:1px;
+}
+
+.map_frame_head{
+	
+}
+
+.sensor_frame{
+	background-color : white; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto; margin:auto;
+}
+.sensor_frame_head{
+	font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 10px; align: left;
+}
+.sensor_frame_body{
+ 	color : #ea002c; border-color : gainsboro; border-width : 2; border-style : none none solid none;	
+}
+
+.sensor_frame_body_value{
+ 		font-size:140; line-height: 200px; text-align:right; text-shadow:2px 2px #8C8C8C;
+}
+.sensor_frame_body_unit{
+ 		font-size:100; color:black; line-height: 200px; text-align:left; text-shadow:2px 2px #8C8C8C;
+}
+
+.action_frame{
+	background-color : gainsboro; border-color : gainsboro; border-width : 2; border-style : solid; border-radius: 15px; height: auto;
+}
+.action_frame_head{
+	background-color : white; font-size:20; border-color : gainsboro; border-width : 2; border-style : none none solid none;border-radius : 20px; align: left
+}
+
+.trigger_head_frame{
+	font-size:20; border-color : white; border-width : thin; border-style : none none solid none; align: center
+}
+.trigger_frame{
+	border-color : lightGray; border-width : 2; border-style : solid; border-radius: 10px; height: auto; margin:auto
+}
+.trigger_frame_head{
+	background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid
+}
+
+
+
+
+					
+</style>
+<link rel="stylesheet" href="./css/styles.css">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script src="http://d3js.org/d3.v2.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js" async defer></script>
+<script src="./js/app.js"></script>
+<title>Band LoRa StarterKit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+</head>
+<script>
+  </script>
+<body style="font-family: Moebius">
+<div class="nav">
+	<ul>
+		<div class="container">
+			<div class="navbar-header">
+				<div class="logo" style="vertical-align:middle">
+					<a href="http://thingplug.sktiot.com/" style="font-size:2em; color : gray;">
+					<img alt="Brand" class="navbar-brand-logo" src="https://openhw.sp1.sktiot.com/asset/custom/logo.png" style="height:45px"></a>
+				</div>
+			</div>
+		</div>
+	</ul>
+</div>
+<div class="container" style="color:#1F2520">
+	<div class="jumbotron">
+		<h2>Band LoRa StarterKit</h2>
+		<p>
+			An Example Web Application that utilizes the ThingPlug Standardized APIs and LoRa Network
+		</p>
+	</div>
+	<h1 class="page-header" align="center"> Device Status Monitoring </h1>
+	<div class="container" align="center" style="vertical-align: middle; ">
+		<div class="row">
+			<div class="col-sm-6 col-md-12" style="background-color : lightGray; border-radius: 15px; height: auto">
+				<div class="row" style="font-size:20; border-color : white; border-width : thin; border-style : none none solid none; " align="left">
+					<div class="col-sm-1 col-xs-1">
+						<img src="http://image000.flaticon.com/icons/svg/1/1176.svg" style="width: 100%; height: 24; margin:3">
+					</div>
+					<div class="col-sm-8 col-xs-8" style="text-align: left; font-size:20;">
+						 Device Information
+					</div>
+				</div>
+				<font size="4">
+				<div class="row">
+					<div class="col-sm-2 col-xs-4" align="Right">
+						 Dev ID :
+					</div>
+					<div class="col-sm-4 col-xs-8" align="left" id="NodeID">
+						 ...
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-2 col-xs-4" align="Right">
+						 Firmware Ver :
+					</div>
+					<div class="col-sm-4 col-xs-8" align="left" id="FirmVer_value">
+						 0.1.0
+					</div>
+				</div>
+				</font>
+			</div>
+		</div>
+		<br>
+		<br>
+		<div class="row" style="background-color : lightgray; border-color : lightgray; border-width : 2; border-style : solid; border-radius: 15px; height: auto">
+			<div class="col-sm-6 col-md-12" style="background-color : white; height: auto; border-color : lightgray; border-width : 2; border-style : none none solid none; border-radius: 15px; ">
+				<div class="row" style="font-size:20; border-color : lightgray; border-width : 2; border-style : none none solid none; border-radius: 15px; " align="left">
+					<div class="col-sm-1 col-xs-1">
+						<img src="http://image000.flaticon.com/icons/svg/62/62516.svg" style="width: 100%; height: 24; margin:3">
+					</div>
+					<div class="col-sm-8 col-xs-8" style="text-align: left; font-size:20;">
+						 LoRa Device Location On Map
+					</div>
+				</div>
+			</div>
+			<div id="map">
+			</div>
+			<script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
+		</div>
+		<br>
+		<div class="row">
+			<div class="col-sm-4 sensor_frame">
+				<div class="row sensor_frame_head">
+					<div class="col-sm-2 col-xs-2">
+						<img src="https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-starter-kit/master/images/sensor.png" style="width: auto; height: 30">
+					</div>
+					<div class="col-sm-8 col-xs-8" style="text-align : center">
+						<font size="3">sensor </font>Temperature
+					</div>
+					<div class="col-sm-2 col-xs-2">
+						<img src="http://image000.flaticon.com/icons/svg/131/131593.svg" style="max-width: 100%; height: 30;">
+					</div>
+				</div>
+				<div class="row" style="color : #ea002c; border-color : gainsboro; border-width : 2; border-style : none none solid none;">
+					<div class="col-sm-7 col-xs-7 sensor_frame_body_value" id="temp_value">
+						0
+					</div>
+					<div class="col-sm-5 col-xs-5 sensor_frame_body_unit">
+						&#x2103;
+					</div>
+				</div>
+				<div id="graph_temp" class="graph_temp" style="max-width: 100%; height: 256; display:block;">
+				</div>
+			</div>
+			<div class="col-sm-4 sensor_frame">
+				<div class="row sensor_frame_head">
+					<div class="col-sm-2 col-xs-2">
+						<img src="https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-starter-kit/master/images/sensor.png" style="width: auto; height: 30">
+					</div>
+					<div class="col-sm-8 col-xs-8" style="text-align : center">
+						<font size="3">sensor </font>Humidity
+					</div>
+					<div class="col-sm-2 col-xs-2">
+						<img src="http://online.focusky.com/qfsz/hfwy/files/extfiles/ext_020151130222331720.png" style="max-width: 100%; height: 30;">
+					</div>
+				</div>
+				<div class="row sensor_frame_body">
+					<div class="col-sm-7 col-xs-7 sensor_frame_body_value" id="humid_value">
+						0
+					</div>
+					<div class="col-xs-5 col-xs-5 sensor_frame_body_unit">
+						%
+					</div>
+				</div>
+				<div id="graph_humid" class="graph_humid" style="max-width: 100%; height: 256; display:block;">
+				</div>
+			</div>
+			<div class="col-sm-4 sensor_frame">
+				<div class="row sensor_frame_head">
+					<div class="col-sm-2 col-xs-2">
+						<img src="https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-starter-kit/master/images/sensor.png" style="width: auto; height: 30">
+					</div>
+					<div class="col-sm-8 col-xs-8" style="text-align : center">
+						<font size="3">sensor </font>Brightness
+					</div>
+					<div class="col-sm-2 col-xs-2">
+						<img src="http://image000.flaticon.com/icons/svg/148/148819.svg" style="max-width: 100%; height: 30;">
+					</div>
+				</div>
+				<div class="row sensor_frame_body">
+					<div class="col-sm-7 col-xs-7 sensor_frame_body_value" id="lux_value">
+						0
+					</div>
+					<div class="col-sm-5 col-xs-5 sensor_frame_body_unit">
+						lux
+					</div>
+				</div>
+				<div id="graph_lux" class="graph_lux" style="max-width: 100%; height: 256; display:block">
+				</div>
+			</div>
+		</div>
+		<br>
+		<div class="row">
+			<div class="col-sm-4 action_frame">
+				<div class="row action_frame_head">
+					<div class="col-sm-2 col-xs-2">
+						<img src="http://image000.flaticon.com/icons/svg/99/99086.svg" style="width: 100%; height: 30">
+					</div>
+					<div class="col-sm-8 col-xs-8" style="text-align : center">
+						<font size="3">actuactor </font>Reset
+					</div>
+					<div class="col-sm-2 col-xs-2">
+						<img src="http://cdn.1001freedownloads.com/icon/thumb/318160/arrow-refresh-4-icon.png" style="max-width: 100%; height: 30;">
+					</div>
+				</div>
+				<div class="row" align="center">
+					<div class="col-sm-14">
+						<font size="5">
+						<!-- <button type="button" style="width:100%;height:auto" id="DevReset">Device Reset</button>-->
+						<a class="myButton" id="DevReset" style="width:100%;height:35;padding">Device Reset</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-4 action_frame">
+				<div class="row action_frame_head">
+					<div class="col-sm-2 col-xs-2">
+						<img src="http://image000.flaticon.com/icons/svg/99/99086.svg" style="width: 100%; height: 30">
+					</div>
+					<div class="col-sm-8 col-xs-8" style="text-align : center">
+						<font size="3">actuactor </font>Period
+					</div>
+					<div class="col-sm-2 col-xs-2">
+						<img src="http://erahost.biz/imgs/test_period.png" style="max-width: 100%; height: 30;">
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-5 col-md-5 col-xs-5" style="vertical-align:bottom">
+						<select id='input_value'>
+							<option>==</option>
+							<option value=1 selected>1</option>
+							<option value=2>2</option>
+							<option value=3>3</option>
+							<option value=4>4</option>
+							<option value=5>5</option>
+						</select>
+						Sec
+					</div>
+					<div class="col-sm-7 col-md-7 col-xs-7">
+						<a class="myButton" id="RepPerChange" style="width:108%;height:35">Change</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-4 action_frame">
+				<div class="row action_frame_head">
+					<div class="col-sm-2 col-xs-2">
+						<img src="http://image000.flaticon.com/icons/svg/99/99086.svg" style="width: 100%; height: 30">
+					</div>
+					<div class="col-sm-8 col-xs-8" style="text-align : center">
+						<font size="3">actuactor </font>Firmware
+					</div>
+					<div class="col-sm-2 col-xs-2">
+						<img src="http://teslathemes.com/wp-content/uploads/2013/11/Retina-Ready.png" style="max-width: 100%; height: 30;">
+					</div>
+				</div>
+				<div class="row" align="center">
+					<div class="col-sm-14">
+						<font size="5">
+						<a class="myButton" id="RepImmediate" style="width:100%;height:35">Update</a>
+					</div>
+				</div>
+			</div>
+			</font>
+		</div>
+		<br>
+		<div class="row">
+			<div class="col-sm-6 col-md-12" style="background-color : lightGray; border-radius: 15px; height: auto">
+				<div class="row trigger_head_frame">
+					<div class="col-sm-1 col-xs-1">
+						<img src="http://icons.iconarchive.com/icons/fps.hu/free-christmas-flat-circle/512/bell-icon.png" style="width: auto; height: 28; margin:1">
+					</div>
+					<div class="col-sm-8 col-xs-8" style="text-align : left">
+						 Trigger Notification
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-3 trigger_frame">
+						<div class="row trigger_frame_head">
+							<div class="col-sm-2 col-xs-2" style="color:ea002c; font-style:bold">
+								Ⅰ
+							</div>
+							<div class="col-sm-8 col-xs-8" style="text-align : left">
+								 TYPE
+							</div>
+						</div>
+						<div class="row" style="background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid">
+							<select id='trigger_sensor' width="100%" style="width: 100%">
+								<option selected>--Sensors--</option>
+								<option value="Temperature">Temperature</option>
+								<option value="Humidity">Humidity</option>
+								<option value="Bright">Bright</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-sm-3 trigger_frame">
+						<div class="row trigger_frame_head">
+							<div class="col-sm-2 col-xs-2" style="color:ea002c; font-style:bold">
+								Ⅱ
+							</div>
+							<div class="col-sm-8 col-xs-8" style="text-align : left">
+								 METHOD
+							</div>
+						</div>
+						<div class="row" style="background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid">
+							<select id='trigger_if' width="100%" style="width: 100%">
+								<option selected>--Trigger Method--</option>
+								<option value=1>&lt;</option>
+								<option value=2>==</option>
+								<option value=3> &gt; </option>
+							</select>
+						</div>
+					</div>
+					<div class="col-sm-3 trigger_frame">
+						<div class="row trigger_frame_head">
+							<div class="col-sm-2 col-xs-2" style="color:ea002c; font-style:bold">
+								Ⅲ
+							</div>
+							<div class="col-sm-8 col-xs-8" style="text-align : left">
+								 CONDITION
+							</div>
+						</div>
+						<div class="row" style="background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid">
+							<input type="text" id="trigger_value" name="trigger_value" value="30" style="text-align:center; width:100%; height: 34px; color:lightGray" onfocus="this.value='';this.style.color='black';return true" width="100%"></input>
+						</div>
+					</div>
+					<div class="col-sm-3 trigger_frame">
+						<div class="row trigger_frame_head">
+							<div class="col-sm-2 col-xs-2" style="color:ea002c; font-style:bold">
+								Ⅳ
+							</div>
+							<div class="col-sm-10 col-xs-10" style="text-align : left" align="right">
+								<select id='trigger_way' width="104%" style="width: 104%">
+									<option selected>--Action Type--</option>
+									<option value="PHONE">PHONE</option>
+									<option value="E-Mail">E-Mail</option>
+								</select>
+							</div>
+						</div>
+						<div class="row" style="background-color : white; border-color : lightGray; border-width : 2;border-radius: 10px; border-style : solid">
+							<input type="text" id="action_type_value" name="action_type_value" style="text-align:center; width:100%; height: 34px; font-size:20px; color:lightGray" onfocus="this.value='';this.style.color='black';return true" value="Type E-MAIL, PHONE here" width="100%"></input>
+						</div>
+					</div>
+				</div>
+				<!---->
+				<div class="row">
+					<a class="myButton" id="action_button" style="width:100%;height:50;padding"><font size="5em">Register Notification</font></a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+</div>
+</div>
+<br>
+<div class="foot">
+<font size="0.5em" color="gray">
+<img src="https://openhw.sp1.sktiot.com/asset/footer/images/skt_logo.gif" style="max-width: 100%; height: auto; margin-top:10; margin-left:10">
+&nbsp; &nbsp; <a href="https://openhw.sp1.sktiot.com/#/about/terms">이용약관 | </a>
+<a href="mailto:thingplug.skt@gmail.com">문의하기</a>
+&nbsp; &nbsp; <a href="https://www.facebook.com/tdeveloper"><img src="https://openhw.sp1.sktiot.com/asset/footer/images/ico_facebook.gif" style="max-width: auto; height: auto;"></a> &nbsp; &nbsp; <a href="https://www.youtube.com/channel/UCZnU_GW3lgeP5heMlt26x9Q"><img src="https://openhw.sp1.sktiot.com/asset/footer/images/ico_youtube.gif" style="max-width: auto; height: auto;"></a>
+<br>
+<br>
+ 우편번호 : 100-999 서울특별시 중구 을지로 65(을지로2가) SK T-타워 SK텔레콤(주)<br>
+ COPYRIGHT ⓒ SK TELECOM. LTD. ALL RIGHTS RESERVED.<br>
+</font>
+</div>
+</body>
+</html>

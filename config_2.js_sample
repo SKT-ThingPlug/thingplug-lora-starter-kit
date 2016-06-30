@@ -1,0 +1,20 @@
+
+module.exports = {
+  AppEUI : 'AppEUI', 							// Application EUI
+  version : 'version', 							// Application의 version
+  TPhost : '211.115.15.160', 					// ThingPlug의 HOST Addresss
+  TPport : '9000', 								// ThingPlug의 HTTP PORT 번호
+  responseAddress : 'HTTP|http://0.0.0.0:0000', // HTTP버전에서 디바이스 제어를 위한 디바이스의 물리적 주소 mga
+  responsePORT : '0000',						// HTTP버전에서 디바이스제어를 위한 디바이스의 물리적 주소 mga 포트
+  userID : 'userID',							// MQTT버전에서 Broker 접속을 위한 ID
+  uKey : 'USER_KEY', 							// Thingplug로그인 후, `마이페이지`에 있는 사용자 인증키
+  mqttClientId : 'MQTT Client ID2',				// MQTT버전에서 Broker 접속을 위한 client ID
+  nodeID : 'LTID', 								// Device 구분을 위한 LTID
+  passCode : '000101', 							// ThingPlug에 Device등록 시 사용할 Device의 비밀번호
+  appID : 'myApplication', 						// Application의 구분을 위한 ID
+  containerName:'LoRa', 						// starter kit에서 생성하고 사용할 container 이름 (임의지정)
+  DevReset : 'DevReset', 						// starter kit에서 생성하고 사용할 제어 명령 DevReset
+  RepPerChange : 'RepPerChange', 				// starter kit에서 생성하고 사용할 제어 명령 RepPerChange
+  RepImmediate : 'RepImmediate', 				// starter kit에서 생성하고 사용할 제어 명령 RepImmediate
+  cmdType : 'sensor_1' 							// starter kit에서 사용할 제어 타입 (임의지정)
+};

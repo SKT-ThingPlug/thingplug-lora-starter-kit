@@ -54,10 +54,10 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 - `config_x.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
 
 > 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
-	1. config_x.js와 device_x.js파일을 추가 또는 삭제(번호는 1번부터 빠짐없이 순차로)<br>
-	2. config_x.js의 `nodeID`수정<br>
-	3.  application_web.js의 `numOfDevice`수정<br>
-4.  `/public/js/app.js` 의 `numOfDevice` 수정<br>
+	1. `config_x.js`와 `device_x.js`파일을 추가 또는 삭제(번호는 1번부터 빠짐없이 순차로)<br>
+	2. `config_x.js`의 `nodeID`수정<br>
+	3.  `application_web.js`의 `numOfDevice`수정<br>
+	4.  `/public/js/app.js` 의 `numOfDevice` 수정<br>
 
 
 
@@ -73,21 +73,26 @@ npm install
 ### config.js 수정
 Starter Kit이 실질적으로 동작하기 위해서는 개발자 계정정보 및 디바이스 정보를 개발자 상황에 맞게 수정해야합니다. `config.js_sample`파일을 `config.js`파일로 복사한 후 `config.js`를 에디터에서 열고 각 항목 오른쪽에 달린 주석 설명과 아래 설명을 참고하여 수정하세요.
 
-#### CSE_ID 란?
-
-CSE_ID는 디바이스를 oneM2M에서 구분하기 위해 주민번호처럼 디바이스마다 부여되는 고유의 식별자입니다. 스타터킷을 위한 CSE_ID는 `LTID`이며 이는 AppEUI와 DevEUI를 합쳐 만든 고유의 ID입니다.  LTID는 당사 규격에서 신규 정의한 값으로서 **Globally Unique**한 값입니다.
-
 ```javascript
 module.exports = {
-  uKey : 'USER_KEY', // Thingplug 로그인 후, `마이페이지`에 있는 사용자 인증키
-  nodeID : 'LTID', // Device 구분을 위한 LoRa-ThingPlug ID
-  passCode : '000101', // ThingPlug에 Device등록 시 사용할 Device의 비밀번호
-  appID : 'myApplication', //Application의 구분을 위한 ID
-  containerName:'LoRa', // starter kit에서 생성하고 사용할 container 이름 (임의지정)
-  DevReset : 'DevReset', // LoRa 디바이스 리셋을 위한 mgmtCmd
-  RepPerChange : 'RepPerChange', // LoRa 디바이스의 Uplink(주기 보고) 주기 변경을 위한 mgmtCmd
-  RepImmediate : 'RepImmediate', // LoRa 디바이스의 Uplink(주기 보고) 즉시 보고를 위한 mgmtCmd
-  cmdType : 'sensor_1' // starter kit에서 사용할 제어 타입 (임의지정)
+
+  AppEUI : 'AppEUI', 							// Application EUI
+  version : 'version', 							// Application의 version
+  TPhost : '211.115.15.160', 					// ThingPlug의 HOST Addresss
+  TPport : '9000', 								// ThingPlug의 HTTP PORT 번호
+  responseAddress : 'HTTP|http://0.0.0.0:0000', // HTTP버전에서 디바이스 제어를 위한 디바이스의 물리적 주소 mga
+  responsePORT : '0000',						// HTTP버전에서 디바이스제어를 위한 디바이스의 물리적 주소 mga 포트
+  userID : 'userID',							// MQTT버전에서 Broker 접속을 위한 ID
+  uKey : 'USER_KEY', 							// Thingplug로그인 후, `마이페이지`에 있는 사용자 인증키
+  nodeID : 'LTID', 								// Device 구분을 위한 LTID
+  passCode : '000101', 							// ThingPlug에 Device등록 시 사용할 Device의 비밀번호
+  appID : 'myApplication', 						// Application의 구분을 위한 ID
+  containerName:'LoRa', 						// starter kit에서 생성하고 사용할 container 이름 (임의지정)
+  DevReset : 'DevReset', 						// starter kit에서 생성하고 사용할 제어 명령 DevReset
+  RepPerChange : 'RepPerChange', 				// starter kit에서 생성하고 사용할 제어 명령 RepPerChange
+  RepImmediate : 'RepImmediate', 				// starter kit에서 생성하고 사용할 제어 명령 RepImmediate
+  cmdType : 'sensor_1' 							// starter kit에서 사용할 제어 타입 (임의지정)
+
 };
 ```
 
@@ -104,7 +109,9 @@ content-location: /APP_EUI/APP_version/node-LTID
 
 2. remoceCSE 생성 요청
 remoteCSE 생성 결과
-다비이스 키 : 64based encoding value==//(ThingPlug에서 발급받은 값)
+
+다비이스 키 : 64based encoding value//(ThingPlug에서 발급받은 값)
+
 content-location: /APP_EUI/APP_version/remoteCSE-LTID
 
 3. container 생성 요청
@@ -143,7 +150,9 @@ content : 32,74,91 //온도, 습도, 조도 가상값
 애플리케이션에서 ThingPlug oneM2M REST API를 통해 데이터를 필요에 따라 제어명령을 보내기 위해서는 먼저 ThingPlug 사이트에 위 device(생성된 remoteCSE)를 등록해야합니다.
 
 - [ThingPlug] 로그인 후 "마이페이지 > 나의 디바이스 > 디바이스 등록" 페이지로 이동합니다.
-- 위에서 device 실행 시 사용한 `config.js`의 디바이스 아이디(cse_ID)와 passCode를 개별등록에 입력하고 `디바이스 정보확인` 버튼을 누릅니다.
+
+- 위에서 device 실행 시 사용한 `config.js`의 디바이스 아이디(LTID)와 passCode를 개별등록에 입력하고 `디바이스 정보확인` 버튼을 누릅니다.
+
 - 필수정보 입력화면에 내용을 해당 내용을 넣어준 후 하단 '저장'버튼을 누르면 ThingPlug에 Device 등록이 완료됩니다.
 
 
@@ -229,8 +238,14 @@ client.on('message', function(topic, message){
 
 ## FAQ
 
-#### device 실행 시 마다 매번 CSE_ID를 등록해야하는 건가요?
-아닙니다. 디바이스마다 최초 1회만 CSE_ID를 등록하면 됩니다. 본 스타터킷에서는 디바이스 실행 시 매번 CSE_ID를 등록하도록 되어 있습니다. 이 경우에도 문제가 되는 것은 아닙니다.  같은 ID로 만드려고 하는 경우conflict ( HTTP : 409, MQTT : 4015) 메시지가 발생할것입니다.
+#### device 실행 시 마다 매번 Resource를 등록해야하는 건가요?
+아닙니다. 디바이스마다 최초 1회만 Resource를 등록하면 됩니다. 본 스타터킷에서는 디바이스 실행 시 매번 Resource를 등록하도록 되어 있습니다. 이 경우에도 문제가 되는 것은 아닙니다. 다만 같은 ID로 만드려고 하는 경우conflict ( HTTP : 409, MQTT : 4015) 메시지가 발생할것입니다.
 
 #### 마이페이지에 사용자 인증키가 없는데요?
 ThingPlug 회원가입 입력양식에 있는 디바이스 연동 프로토콜 선택을 반드시 HTTP로 선택해야 합니다. 그렇지 않을 경우 oneM2M API를 이용할 수 없습니다. 가입시에만 선택이 가능하기 때문에 새로운 아이디로 새 계정을 만들고 가입 입력양식에서 꼭 HTTP로 선택해주세요.
+
+#### MQTT connect가 되지 않습니다
+ThingPlug ID와 uKey가 config파일에 제대로 입력이 되었는지 확인해주세요. 그리고 clientId가 다른사람과 겹치는 경우 간혹 문제가 발생할 수 있으니 주의하여 주십시오
+
+#### 센서값이 보이지 않습니다
+ThingPlug 포털에 디바이스를 등록하였는지 확인해주세요. 등록하지 않은경우 uKey mapping이 되지 않아 Application에서 디바이스로 접근이 되지 않습니다. 

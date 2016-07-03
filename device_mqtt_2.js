@@ -41,7 +41,6 @@ function MQTTClient(){
   
   var isRunning = 1;
   var getStatus = function(){return this.isRunning;}
-  var cnt = 0;
   
   var client = mqtt.connect('mqtt://'+config.TPhost, {
 	username:config.userID,			//MQTT broker로 접속을 위한 ID

@@ -84,6 +84,7 @@ module.exports = {
   responsePORT : '0000',						// HTTP버전에서 디바이스제어를 위한 디바이스의 물리적 주소 mga 포트
   userID : 'userID',							// MQTT버전에서 Broker 접속을 위한 ID
   uKey : 'USER_KEY', 							// Thingplug로그인 후, `마이페이지`에 있는 사용자 인증키
+  mqttClientId : 'MQTT Client ID',				// MQTT버전에서 Broker 접속을 위한 client ID
   nodeID : 'LTID', 								// Device 구분을 위한 LTID
   passCode : '000101', 							// ThingPlug에 Device등록 시 사용할 Device의 비밀번호
   appID : 'myApplication', 						// Application의 구분을 위한 ID

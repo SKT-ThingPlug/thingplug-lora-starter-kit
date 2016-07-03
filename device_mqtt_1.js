@@ -205,7 +205,6 @@ function MQTTClient(){
 						try{
 //----------------------------------------------------mgmtCmd요청 처리 부분----------------------------------------------------//
 							if(xmlObj['m2m:req']){//mgmtCmd Request
-								//console.log(msgs);
 								console.log(colors.red('#####################################'));
 								console.log(colors.red('MQTT 수신'));
 								console.log('RI : '+xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0]);		//Resource ID 출력, (ex : EI000000000000000)
@@ -219,9 +218,11 @@ function MQTTClient(){
 //=============================================================================================================================//
 
 //----------------------------------------- 6. mgmtCmd 수행 결과 전달 updateExecInstance---------------------------------------//
+								var ri = xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0];
 								var updateExecInstance = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\"><op>3</op><to>"+"/"+config.AppEUI+"/"+config.version+"/mgmtCmd-"+config.nodeID+"_"+cmt+"/execInstance-"+ri+"</to><fr>"+config.nodeID+"</fr><ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri><dKey>"+config.dKey+"</dKey><cty>application/vnd.onem2m-prsp+xml</cty><pc><exin><exs>3</exs><exr>0</exr></exin></pc></m2m:req>";
 								client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, updateExecInstance, {qos : 1}, function(){
 									console.log(colors.red('#####################################'));
+									isRunning = "updateExecInstance";
 								});
 //=============================================================================================================================//
 							}
@@ -232,10 +233,15 @@ function MQTTClient(){
 //=============================================================================================================================//
 						}
 						catch(e){
-							console.error(msgs);
+							console.error(colors.yellow(msgs));
 							console.error(e);
 						}
-					}
+				}
+//----------------------------------------- 6. mgmtCmd 수행 결과 전달 updateExecInstance---------------------------------------//
+				else if("updateExecInstance"==isRunning){
+					isRunning = "ContentInstance";
+				}
+//=============================================================================================================================//
 			}
       });
 		

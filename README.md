@@ -76,9 +76,9 @@ Starter Kit이 실질적으로 동작하기 위해서는 개발자 계정정보 
 ```javascript
 module.exports = {
 
-  AppEUI : 'AppEUI', 							// Application EUI
-  version : 'version', 							// Application의 version
-  TPhost : '211.115.15.160', 					// ThingPlug의 HOST Addresss
+  AppEUI : 'starterkittest', 					// Application EUI
+  version : 'v1_0', 							// Application의 version
+  TPhost : 'thingplugtest.sktiot.com',			// ThingPlug의 HOST Addresss
   TPport : '9000', 								// ThingPlug의 HTTP PORT 번호
   responseAddress : 'HTTP|http://0.0.0.0:0000', // HTTP버전에서 디바이스 제어를 위한 디바이스의 물리적 주소 mga
   responsePORT : '0000',						// HTTP버전에서 디바이스제어를 위한 디바이스의 물리적 주소 mga 포트
@@ -121,7 +121,7 @@ content-location: /APP_EUI/APP_version/remoteCSE-LTID/container-LoRa
 
 4. mgmtCmd 생성 요청
 mgmtCmd 생성 결과
-content-location: /APP_EUI/APP_version/mgmtCmd-LTID
+content-location: /APP_EUI/APP_version/mgmtCmd-LTID_mgmtCmdType
 
 5. content Instance 주기적 생성 시작
 

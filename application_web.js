@@ -11,7 +11,6 @@ var config_h = [];
 var configIndex = 0;
 var numOfDevice = 2;
 
-var sms = require('./notification/sendsms').request;
 var nodemailer = require('./notification/mail').request;
 
 var colors = require('colors');
@@ -85,14 +84,7 @@ app.post('/email', function(req,res) {
 
 
 app.post('/sms', function(req,res) {
-	
-	var cmd =req.body;
-	
-	console.log(cmd);
-	//sms(cmd);
-	
-	
-  return res.send('result : ok');
+  return res.send('result : no service');
 });
 //=============================================================================================================================//
 

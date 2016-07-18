@@ -97,6 +97,12 @@ module.exports = {
 };
 ```
 
+> HTTP버전에서 반드시 수정되야하는것<br>
+	responseAddress, responsePORT, uKey, nodeID, passCode
+
+> MQTT버전에서 반드시 수정되야하는것<br>
+	userID, uKey, mqttClientId, nodeID, passCode
+
 ### Device 실행
 `node device` 명령어로 Device를 실행하면 다음과 같은 결과 화면이 나오면 정상입니다.
 

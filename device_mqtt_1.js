@@ -46,7 +46,7 @@ function MQTTClient(){
 	username:config.userID,			//MQTT broker로 접속을 위한 ID
 	password:config.uKey,			//MQTT broker로 접속을 위한 password
 	clientId:config.mqttClientId,	//MQTT Client ID
-	clean:true						//clean session
+	clean:false						//clean session
   });
 	client.on('connect', function () {
 		console.log('### mqtt connected ###');

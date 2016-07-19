@@ -13,9 +13,8 @@ console.log(colors.green('### ThingPlug - LoRa virtual Device###'));
 if(typeof config === 'undefined') {
   return console.log(colors.red('먼저 config.js를 열어 optionData를 설정하세요. README.md에 Starterkit 실행 방법이 설명되어 있습니다.'));
 }
-
 console.log(colors.green('0. 제어 명령 수신 MQTT 연결'));
-MQTTClient();
+
 //=============================================================================================================================//
 
 
@@ -33,14 +32,13 @@ function randomInt (low, high) {
 }
 //=============================================================================================================================//
 
-
+MQTTClient();
 function MQTTClient(){
-
   
   var self = this;
   
   var isRunning = 1;
-  var getStatus = function(){return this.isRunning;}
+  var reqHeader = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\">";
   
   var client = mqtt.connect('mqtt://'+config.TPhost, {
 	username:config.userID,			//MQTT broker로 접속을 위한 ID
@@ -57,7 +55,16 @@ function MQTTClient(){
 
 
 //----------------------------------------------------------1. node 생성 요청--------------------------------------------------//
-		var createNode = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\"><op>1</op><to>"+"/"+config.AppEUI+"/"+config.version+"</to><fr>"+config.nodeID+"</fr><ty>14</ty><ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri><nm>"+config.nodeID+"</nm><cty>application/vnd.onem2m-prsp+xml</cty><pc><nod><ni>"+config.nodeID+"</ni><mga>MQTT|"+config.nodeID+"</mga></nod></pc></m2m:req>";
+		var op = "<op>1</op>";
+		var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+		var fr = "<fr>"+config.nodeID+"</fr>";
+		var ty = "<ty>14</ty>";
+		var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+		var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+		var nm = "<nm>"+config.nodeID+"</nm>";
+		var reqBody = "<pc><nod><ni>"+config.nodeID+"</ni><mga>MQTT|"+config.nodeID+"</mga></nod></pc></m2m:req>";
+		
+		var createNode = reqHeader+op+to+fr+ty+ri+cty+nm+reqBody;
 		client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createNode, {qos : 1}, function(){
 			console.log(colors.blue('1. node 생성 요청'));
 			isRunning = "node";
@@ -72,7 +79,7 @@ function MQTTClient(){
 	client.on('error', function(error){
     self.emit('error', error);
   });
-
+	
 	client.on('message', function(topic, message){			//mqtt subscribe message 수신
 		if("ContentInstance"!=isRunning){
 		console.log(' ');
@@ -94,7 +101,17 @@ function MQTTClient(){
 //=============================================================================================================================//
 
 //-------------------------------------------------2. remoteCSE생성 요청(기기등록)---------------------------------------------//
-					var createRemoteCSE = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\"><op>1</op><to>"+"/"+config.AppEUI+"/"+config.version+"</to><fr>"+config.nodeID+"</fr><ty>16</ty><ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri><passCode>"+config.passCode+"</passCode><cty>application/vnd.onem2m-prsp+xml</cty><nm>"+config.nodeID+"</nm><pc><csr><cst>3</cst><csi>"+config.nodeID+"</csi><rr>true</rr><nl>"+config.nodeRI+"</nl></csr></pc></m2m:req>";
+					var op = "<op>1</op>";
+					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+					var fr = "<fr>"+config.nodeID+"</fr>";
+					var ty = "<ty>16</ty>";
+					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+					var passCode = "<passCode>"+config.passCode+"</passCode>";
+					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+					var nm = "<nm>"+config.nodeID+"</nm>";
+					var reqBody = "<pc><csr><cst>3</cst><csi>"+config.nodeID+"</csi><rr>true</rr><nl>"+config.nodeRI+"</nl></csr></pc></m2m:req>";
+					
+					var createRemoteCSE = reqHeader+op+to+fr+ty+ri+passCode+cty+nm+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID + "/"+config.AppEUI, createRemoteCSE, {qos : 1}, function(){
 						console.log(' ');
 						console.log(colors.blue('2. remoceCSE 생성 요청'));
@@ -117,7 +134,17 @@ function MQTTClient(){
 //=============================================================================================================================//
 
 //---------------------------------------------------3. container 생성 요청----------------------------------------------------//	
-					var createContainer = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\"><op>1</op><to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"</to><fr>"+config.nodeID+"</fr><ty>3</ty><ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri><nm>"+config.containerName+"</nm><dKey>"+config.dKey+"</dKey><cty>application/vnd.onem2m-prsp+xml</cty><pc><cnt><lbl>con</lbl></cnt></pc></m2m:req>";
+					var op = "<op>1</op>";
+					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"</to>";
+					var fr = "<fr>"+config.nodeID+"</fr>";
+					var ty = "<ty>3</ty>";
+					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+					var nm = "<nm>"+config.containerName+"</nm>";
+					var dKey = "<dKey>"+config.dKey+"</dKey>";
+					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+					var reqBody = "<pc><cnt><lbl>con</lbl></cnt></pc></m2m:req>";
+					
+					var createContainer = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContainer, {qos : 1}, function(){
 						console.log(' ');
 						console.log(colors.blue('3. container 생성 요청'));
@@ -136,7 +163,17 @@ function MQTTClient(){
 //=============================================================================================================================//
 
 //---------------------------4. 장치 제어를 위한 device mgmtCmd DevReset 리소스 생성 요청--------------------------------------//
-					var createDevReset = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\"><op>1</op><to>"+"/"+config.AppEUI+"/"+config.version+"</to><fr>"+config.nodeID+"</fr><ty>12</ty><ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri><nm>"+config.nodeID+"_"+config.DevReset+"</nm><dKey>"+config.dKey+"</dKey><cty>application/vnd.onem2m-prsp+xml</cty><pc><mgc><cmt>"+config.DevReset+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
+					var op = "<op>1</op>";
+					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+					var fr = "<fr>"+config.nodeID+"</fr>";
+					var ty = "<ty>12</ty>";
+					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+					var nm = "<nm>"+config.nodeID+"_"+config.DevReset+"</nm>";
+					var dKey = "<dKey>"+config.dKey+"</dKey>";
+					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+					var reqBody = "<pc><mgc><cmt>"+config.DevReset+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
+					
+					var createDevReset = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createDevReset, {qos : 1}, function(){
 						console.log(' ');
 						console.log(colors.blue('4. DevReset 생성 요청'));
@@ -155,7 +192,17 @@ function MQTTClient(){
 //=============================================================================================================================//
 
 //---------------------------4. 장치 제어를 위한 device mgmtCmd RepImmediate 리소스 생성 요청----------------------------------//
-					var createRepImmediate = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\"><op>1</op><to>"+"/"+config.AppEUI+"/"+config.version+"</to><fr>"+config.nodeID+"</fr><ty>12</ty><ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri><nm>"+config.nodeID+"_"+config.RepImmediate+"</nm><dKey>"+config.dKey+"</dKey><cty>application/vnd.onem2m-prsp+xml</cty><pc><mgc><cmt>"+config.RepImmediate+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
+					var op = "<op>1</op>";
+					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+					var fr = "<fr>"+config.nodeID+"</fr>";
+					var ty = "<ty>12</ty>";
+					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+					var nm = "<nm>"+config.nodeID+"_"+config.RepImmediate+"</nm>";
+					var dKey = "<dKey>"+config.dKey+"</dKey>";
+					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+					var reqBody = "<pc><mgc><cmt>"+config.RepImmediate+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
+					
+					var createRepImmediate = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepImmediate, {qos : 1}, function(){
 						console.log(' ');
 						console.log(colors.blue('4. RepImmediate 생성 요청'));
@@ -174,7 +221,17 @@ function MQTTClient(){
 //=============================================================================================================================//
 
 //---------------------------4. 장치 제어를 위한 device mgmtCmd RepPerChange 리소스 생성 요청----------------------------------//
-					var createRepPerChange = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\"><op>1</op><to>"+"/"+config.AppEUI+"/"+config.version+"</to><fr>"+config.nodeID+"</fr><ty>12</ty><ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri><nm>"+config.nodeID+"_"+config.RepPerChange+"</nm><dKey>"+config.dKey+"</dKey><cty>application/vnd.onem2m-prsp+xml</cty><pc><mgc><cmt>"+config.RepPerChange+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
+					var op = "<op>1</op>";
+					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+					var fr = "<fr>"+config.nodeID+"</fr>";
+					var ty = "<ty>12</ty>";
+					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+					var nm = "<nm>"+config.nodeID+"_"+config.RepPerChange+"</nm>";
+					var dKey = "<dKey>"+config.dKey+"</dKey>";
+					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+					var reqBody = "<pc><mgc><cmt>"+config.RepPerChange+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
+					
+					var createRepPerChange = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepPerChange, {qos : 1}, function(){
 						console.log(' ');
 						console.log(colors.blue('4. RepPerChange 생성 요청'));
@@ -217,8 +274,18 @@ function MQTTClient(){
 //=============================================================================================================================//
 
 //----------------------------------------- 6. mgmtCmd 수행 결과 전달 updateExecInstance---------------------------------------//
-								var ri = xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0];
-								var updateExecInstance = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\"><op>3</op><to>"+"/"+config.AppEUI+"/"+config.version+"/mgmtCmd-"+config.nodeID+"_"+cmt+"/execInstance-"+ri+"</to><fr>"+config.nodeID+"</fr><ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri><dKey>"+config.dKey+"</dKey><cty>application/vnd.onem2m-prsp+xml</cty><pc><exin><exs>3</exs><exr>0</exr></exin></pc></m2m:req>";
+								var exin_ri = xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0];
+								
+								var op = "<op>3</op>";
+								var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/mgmtCmd-"+config.nodeID+"_"+cmt+"/execInstance-"+exin_ri+"</to>";
+								var fr = "<fr>"+config.nodeID+"</fr>";
+								var ty = "<ty>12</ty>";
+								var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+								var dKey = "<dKey>"+config.dKey+"</dKey>";
+								var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+								var reqBody = "<pc><exin><exs>3</exs><exr>0</exr></exin></pc></m2m:req>";
+					
+								var updateExecInstance = reqHeader+op+to+fr+ri+dKey+cty+reqBody;
 								client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, updateExecInstance, {qos : 1}, function(){
 									console.log(colors.red('#####################################'));
 									isRunning = "updateExecInstance";
@@ -254,7 +321,16 @@ function MQTTClient(){
 	  var value_HUMID = Math.floor(Math.random() * 5) + BASE_HUMID;
 	  var value_LUX = Math.floor(Math.random() * 5) + BASE_LUX;
 	  
-	  var createContentInstance = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\"><op>1</op><to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"/container-"+config.containerName+"</to><fr>"+config.nodeID+"</fr><ty>4</ty><ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri><cty>application/vnd.onem2m-prsp+xml</cty> <dKey>"+config.dKey+"</dKey><pc><cin><cnf>text</cnf><con>"+value_TEMP.toString()+","+value_HUMID.toString()+","+value_LUX.toString()+"</con></cin></pc></m2m:req>";
+	  var op = "<op>1</op>";
+	  var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"/container-"+config.containerName+"</to>";
+	  var fr = "<fr>"+config.nodeID+"</fr>";
+	  var ty = "<ty>4</ty>";
+	  var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+	  var dKey = "<dKey>"+config.dKey+"</dKey>";
+	  var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	  var reqBody = "<pc><cin><cnf>text</cnf><con>"+value_TEMP.toString()+","+value_HUMID.toString()+","+value_LUX.toString()+"</con></cin></pc></m2m:req>";
+	  
+	  var createContentInstance = reqHeader+op+to+fr+ty+ri+cty+dKey+reqBody;
 	  client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContentInstance, {qos : 1}, function(){
 		});
     }
@@ -265,6 +341,7 @@ function MQTTClient(){
 function processCMD(req, cmt){
 	if(cmt=='RepImmediate'){
 		BASE_TEMP = 10;
+		IntervalProcess();
 	}
 	else if(cmt=='RepPerChange'){
 		UPDATE_CONTENT_INTERVAL = req.cmd*1000;
@@ -283,4 +360,4 @@ function processCMD(req, cmt){
  
   
 
-};
+}

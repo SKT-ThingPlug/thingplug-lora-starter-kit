@@ -82,10 +82,10 @@ module.exports = {
   TPport : '9000', 								// ThingPlug의 HTTP PORT 번호
   responseAddress : 'HTTP|http://0.0.0.0:0000', // HTTP버전에서 디바이스 제어를 위한 디바이스의 물리적 주소 mga
   responsePORT : '0000',						// HTTP버전에서 디바이스제어를 위한 디바이스의 물리적 주소 mga 포트
-  userID : 'userID',							// MQTT버전에서 Broker 접속을 위한 ID
+  userID : 'userID',							// MQTT버전에서 Broker 접속을 위한 ID, 포털 ID 사용
   uKey : 'USER_KEY', 							// Thingplug로그인 후, `마이페이지`에 있는 사용자 인증키
   mqttClientId : 'MQTT Client ID',				// MQTT버전에서 Broker 접속을 위한 client ID
-  nodeID : 'LTID', 								// Device 구분을 위한 LTID
+  nodeID : 'LTID', 								// Device 구분을 위한 LTID, 디바이스 고유 ID 사용
   passCode : '000101', 							// ThingPlug에 Device등록 시 사용할 Device의 비밀번호
   appID : 'myApplication', 						// Application의 구분을 위한 ID
   containerName:'LoRa', 						// starter kit에서 생성하고 사용할 container 이름 (임의지정)

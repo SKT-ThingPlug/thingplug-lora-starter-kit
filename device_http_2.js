@@ -5,7 +5,7 @@ var parseString = require('xml2js').parseString;
 
 
 //-------------------------------------------------------Connection 설정-------------------------------------------------------//
-var config = require('./config_1');
+var config = require('./config_2');
 var httpReq = require('./promise-http').request;
 var httpRes = require('http');
 

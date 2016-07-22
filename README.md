@@ -4,13 +4,14 @@
 본 Starter Kit을 통하여 SK Telecom의 ThingPlug LoRa를 활용하는 방법을 쉽게 이해하고, 다양한 LoRa 서비스 개발을 Starter Kit에서부터 시작해보세요.
 
 ## Starter Kit의 목적
-Starter Kit에서는 역할에 따라 구성원을 다음 세 가지로 구분할 수 있습니다.
+Starter Kit에서는 역할에 따라 구성원을 다음 네 가지로 구분할 수 있습니다.
 
 ![구성과 주요 요청](https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-lora-starter-kit/master/images/LoRaStarterKit%20Flow.png)
 
 - 애플리케이션 클라이언트 (Application)
 - 디바이스 클라이언트 (Device)
 - oneM2M API를 제공하는 ThingPlug 서버 (ThingPlug)
+- LoRa Network 서버
 
 애플리케이션과 디바이스는 직접적으로 통신하지 않고 각 구성원들은 기본적으로 ThingPlug가 제공하는 oneM2M 표준 기반의 REST API를 통해 oneM2M 서버와 통신을 하게 됩니다. 해당 API를 통해 제공되는 IoT의 공통적인 기능(예, 데이터 저장, 장치 관리, 장치 등록 등)은 디바이스와 애플리케이션의 개발자들이 좀 더 쉽게 LoRa 서비스를 개발할 수 있는 환경을 제공합니다.
 
@@ -34,7 +35,7 @@ Starter Kit을 실행하기 위해서는 다음과 같은 도구가 설치되어
 - [Node.js](https://nodejs.org) : 공식 사이트에서 설치 패키지를 다운받을 수 있습니다.
 
 > 주의!<br>
-ThingPlug oneM2M을 이용하기 위해서는 ThingPlug 계정이 필요합니다. ThingPlug 회원가입 시 사용할 디바이스 연동 프로토콜을 반드시 HTTP로 선택해야 합니다. HTTP로 선택하지 않고 이미 계정을 만드셨다면 다른 계정을 하나 더 만들어서 진행하세요.
+ThingPlug를 이용하기 위해서는 ThingPlug 계정이 필요합니다. ThingPlug 회원가입 시 사용할 디바이스 연동 프로토콜을 반드시 HTTP로 선택해야 합니다.
 
 #### 코드 복사
 
@@ -83,9 +84,9 @@ module.exports = {
   responseAddress : 'HTTP|http://0.0.0.0:0000', // HTTP버전에서 디바이스 제어를 위한 디바이스의 물리적 주소 mga
   responsePORT : '0000',						// HTTP버전에서 디바이스제어를 위한 디바이스의 물리적 주소 mga 포트
   userID : 'userID',							// MQTT버전에서 Broker 접속을 위한 ID, 포털 ID 사용
-  uKey : 'USER_KEY', 							// Thingplug로그인 후, `마이페이지`에 있는 사용자 인증키
-  mqttClientId : 'MQTT Client ID',				// MQTT버전에서 Broker 접속을 위한 client ID
-  nodeID : 'LTID', 								// Device 구분을 위한 LTID, 디바이스 고유 ID 사용
+  uKey : 'USER KEY FROM PORTAL', 				// Thingplug로그인 후, `마이페이지`에 있는 사용자 인증키
+  mqttClientId : 'Please Make Ramdom Value',	// MQTT버전에서 Broker 접속을 위한 client ID
+  nodeID : 'Please Type Your Own LTID', 		// Device 구분을 위한 LTID, 디바이스 고유 ID 사용
   passCode : '000101', 							// ThingPlug에 Device등록 시 사용할 Device의 비밀번호
   appID : 'myApplication', 						// Application의 구분을 위한 ID
   containerName:'LoRa', 						// starter kit에서 생성하고 사용할 container 이름 (임의지정)
@@ -97,47 +98,16 @@ module.exports = {
 };
 ```
 
-> HTTP버전에서 반드시 수정되야하는것<br>
+> HTTP버전에서 사용자가 반드시 수정되야하는것<br>
 	responseAddress, responsePORT, uKey, nodeID, passCode
 
-> MQTT버전에서 반드시 수정되야하는것<br>
+> MQTT버전에서 사용자가 반드시 수정되야하는것<br>
 	userID, uKey, mqttClientId, nodeID, passCode
 
 ### Device 실행
 `node device` 명령어로 Device를 실행하면 다음과 같은 결과 화면이 나오면 정상입니다.
 
-```
-$ node device
-### ThingPlug Device ###
-1. node 생성 요청
-node 생성 결과
-생성 node Resource ID : ND00000000000000000000//(ThingPlug에서 발급받은 값)
-content-location: /APP_EUI/APP_version/node-LTID
-
-2. remoceCSE 생성 요청
-remoteCSE 생성 결과
-
-다비이스 키 : 64based encoding value//(ThingPlug에서 발급받은 값)
-
-content-location: /APP_EUI/APP_version/remoteCSE-LTID
-
-3. container 생성 요청
-container 생성 결과
-content-location: /APP_EUI/APP_version/remoteCSE-LTID/container-LoRa
-
-4. mgmtCmd 생성 요청
-mgmtCmd 생성 결과
-content-location: /APP_EUI/APP_version/mgmtCmd-LTID_mgmtCmdType
-
-5. content Instance 주기적 생성 시작
-
-6. 제어 명령 수신
-### mqtt(http) connected ###
-content : 35,72,90 //온도, 습도, 조도 가상값
-content : 33,70,92 //온도, 습도, 조도 가상값
-content : 32,74,91 //온도, 습도, 조도 가상값
-...
-```
+![결과](https://raw.githubusercontent.com/SKT-ThingPlug/thingplug-lora-starter-kit/master/images/process.PNG)
 
 #### Device가 하는 일
 
@@ -198,7 +168,7 @@ client.on('message', function(topic, message){
 		...//받은 요청 처리 및 응답
 	});
 
-/////////condition branch//////////////////
+/////////condition branch device.js//////////////////
 		if(cmt=='RepImmediate'){//즉시보고
 			...
 		}
@@ -256,3 +226,6 @@ ThingPlug ID와 uKey가 config파일에 제대로 입력이 되었는지 확인�
 
 #### 센서값이 보이지 않습니다
 ThingPlug 포털에 디바이스를 등록하였는지 확인해주세요. 등록하지 않은경우 uKey mapping이 되지 않아 Application에서 디바이스로 접근이 되지 않습니다. 
+
+#### config.js가 없다고 나옵니다
+Sample코드를 수정했는지, 파일명에서 sample을 지웠는지 다시한번 확인해주세요.

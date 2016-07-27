@@ -51,7 +51,7 @@ git clone https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit.git
 - `device_http_x.js` : 해당 파일은  device.js파일의 http 버전입니다.
 - `application_web.js` : Express.js를 사용한 Web API 서버로 Sample Web Application에서 호출하는 backend 서버의 역할을 합니다. `device.js`에서 ThingPlug로 전송한 데이터를 사용자에게 보여주거나 웹페이지로부터 명령을 받아 ThingPlug 서버를 통해 실제 device를 제어하기도 합니다.
 - `public/` : Sample Web Application의 html, css, javascript 등 정적 파일 목록입니다.
-- `notification/` : trigger 발생시 문제를 notify하기 위한 E-MAIL관련 파일이 있습니다. 현재 E-MAIL은 nodemailer api를 활용해 전송을 하는 방식을 활용하였으며, 이외에도 개발자가 nodejs의 library를 통해 다양한 방법을 응용할 수 있습니다.
+- `notification/` : trigger 발생시 문제를 notify하기 위한 E-MAIL관련 파일이 있습니다. 현재 E-MAIL은 nodemailer api를 활용해 전송을 하는 방식을 활용하였으며, GMAIL계정정보를 mail.js에 입력하시면 됩니다. 이외에도 개발자가 nodejs의 library를 통해 다양한 방법을 응용할 수 있습니다.
 - `config_x.js` : 개발자 인증키와 디바이스 ID등 스타터킷 실행에 앞서 필요한 환경 값을 가지고 있습니다. 각자의 상황에 맞게 수정이 필요합니다. [config.js 수정참고 섹션](https://github.com/SKT-ThingPlug/thingplug-lora-starter-kit#configjs-수정)
 
 > 	현재 sample의 경우 multi Device를 지원하기위해 js파일 이름에 `_숫자` 형태로 mapping 하였습니다. Device의 숫자를 변경하기 위해서는 몇가지 변경사항이 있습니다.<br>
@@ -153,6 +153,18 @@ CMT : mgmtCmd
 EXRA : request 목적
 #####################################
 ```
+
+mgmtCmd를 수정하기위해서는 해당부분을 변경하시면 됩니다.
+
+```javascript
+////////////CODE EXAMPLE in /public/js/app.js////////////////
+///버튼 클릭 시 application에서 mgmtCmd(DevReset) 송신///////
+	$('#DevReset').on('click', function(event) {
+		$.post('/control',{cmt:'DevReset', cmd:'request'}, function(data,status){
+		});
+	});
+```
+
 ```javascript
 ///////CODE EXAMPLE in device.js///////////
 
@@ -166,9 +178,8 @@ client.on('message', function(topic, message){
 	var msgs = message.toString().split(',');
 	xml2js.parseString( msgs[0], function(err, xmlObj){
 		...//받은 요청 처리 및 응답
-	});
-
-/////////condition branch device.js//////////////////
+		
+		/////////condition branch device.js//////////////////
 		if(cmt=='RepImmediate'){//즉시보고
 			...
 		}
@@ -179,9 +190,14 @@ client.on('message', function(topic, message){
 			...		
 		}
 		else{
-			console.log('Unknown CMD');
+			
 		}
+		
+	});
+
+
 ```
+
 
 #### Application 하는 일
 

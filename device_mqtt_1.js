@@ -341,7 +341,6 @@ function MQTTClient(){
 function processCMD(req, cmt){
 	if(cmt=='RepImmediate'){
 		BASE_TEMP = 10;
-		IntervalProcess();
 	}
 	else if(cmt=='RepPerChange'){
 		UPDATE_CONTENT_INTERVAL = req.cmd*1000;

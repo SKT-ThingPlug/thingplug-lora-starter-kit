@@ -341,7 +341,6 @@ function MQTTClient(){
 function processCMD(req, cmt){
 	if(cmt=='RepImmediate'){
 		BASE_TEMP = 10;
-		IntervalProcess();
 	}
 	else if(cmt=='RepPerChange'){
 		UPDATE_CONTENT_INTERVAL = req.cmd*1000;
@@ -350,7 +349,7 @@ function processCMD(req, cmt){
 		IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
 	}
 	else if(cmt=='DevReset'){
-		BASE_TEMP = 30;		
+		BASE_TEMP = 40;		
 	}
 	else{
 		console.log('Unknown CMD');

@@ -9,7 +9,7 @@ var app = express();
 var config = [];
 var config_h = [];
 var configIndex = 0;
-var numOfDevice = 2;
+var numOfDevice = 1;
 
 var nodemailer = require('./notification/mail').request;
 

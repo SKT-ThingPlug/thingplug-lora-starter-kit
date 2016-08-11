@@ -29,7 +29,7 @@ jQuery(document).ready(function() {
 
 	var nodeID = [];  
 
-	var numOfDevice = 2;
+	var numOfDevice = 1;
 
 
 	var map = null;

@@ -1,3 +1,20 @@
+/*
+ ThingPlug StarterKit for LoRa version 0.1
+ 
+ Copyright © 2016 IoT Tech. Lab of SK Telecom All rights reserved.
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+	http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+*/
+
 'use strict';
 
 var colors = require('colors');
@@ -19,10 +36,6 @@ if(typeof config == 'undefined') {
 
 //-------------------------------------------------------Virtual Sensor Data---------------------------------------------------//
 var IntervalFunction;
-var UPDATE_CONTENT_INTERVAL = 1000;
-var BASE_TEMP = 30;
-var BASE_HUMID = 60;
-var BASE_LUX = 80;
 //=============================================================================================================================//
 
 //--------------------------------------------Request ID를 생성하기 위한 RandomInt Function------------------------------------//
@@ -71,10 +84,10 @@ function processCMD(req, cmt){
 		BASE_TEMP = 10;
 	}
 	else if(cmt=='RepPerChange'){					//주기변경
-		UPDATE_CONTENT_INTERVAL = req.cmd*1000;
-		console.log('UPDATE_CONTENT_INTERVAL: ' + UPDATE_CONTENT_INTERVAL);
+		config.UPDATE_CONTENT_INTERVAL = req.cmd*1000;
+		console.log('UPDATE_CONTENT_INTERVAL: ' + config.UPDATE_CONTENT_INTERVAL);
 		clearInterval(IntervalFunction);
-		IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
+		IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL);
 	}
 	else if(cmt=='DevReset'){						//디바이스 리셋
 		BASE_TEMP = 30;		
@@ -102,8 +115,8 @@ httpReq({
     }
   },
   body : {nod : 
-  {ni : config.nodeID,												//등록하는 CSE의 LTID 사용
-   mga : 'HTTP|' + config.responseAddress							//등록하는 CSE의 물리적 접근 식별자 또는 주소
+  {ni : config.nodeID,								//등록하는 CSE의 LTID 사용
+   mga : config.responseAddress						//등록하는 CSE의 물리적 접근 식별자 또는 주소
   }}
 
 //=============================================================================================================================//
@@ -289,7 +302,7 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
   console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
   if(result.headers){
     console.log(colors.green('4. content Instance 주기적 생성 시작'));
-	IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
+	IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL);
   }
   });
 //=============================================================================================================================//
@@ -299,11 +312,6 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
 
 //------------------------------5. 센서 데이터 전송을 위한 ContentInstance 리소스 생성 요청------------------------------------//	
  function IntervalProcess(){
-      var value_TEMP = Math.floor(Math.random() * 5) + BASE_TEMP;
-	  var value_HUMID = Math.floor(Math.random() * 5) + BASE_HUMID;
-	  var value_LUX = Math.floor(Math.random() * 5) + BASE_LUX;
-
-    var value = value_TEMP.toString()+","+value_HUMID.toString()+","+value_LUX.toString()
     httpReq({ 
       options : {
 		host: config.TPhost,
@@ -321,7 +329,7 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
       },
       body : {cin:{
 		cnf : 'text', 							//업로드 하는 데이터 타입의 정보 (cnf = contentInfo)
-		con : value   							//업로드 하는 데이터 (con == content)
+		con : config.contents()					//업로드 하는 데이터 (con == content)
 		}}
 //=============================================================================================================================//
 

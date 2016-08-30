@@ -1,3 +1,20 @@
+/*
+ ThingPlug StarterKit for LoRa version 0.1
+ 
+ Copyright © 2016 IoT Tech. Lab of SK Telecom All rights reserved.
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+	http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+*/
+
 'use strict';
 
 var colors = require('colors');
@@ -13,6 +30,7 @@ console.log(colors.green('### ThingPlug - LoRa virtual Device###'));
 if(typeof config === 'undefined') {
   return console.log(colors.red('먼저 config.js를 열어 optionData를 설정하세요. README.md에 Starterkit 실행 방법이 설명되어 있습니다.'));
 }
+
 console.log(colors.green('0. 제어 명령 수신 MQTT 연결'));
 
 //=============================================================================================================================//
@@ -20,10 +38,6 @@ console.log(colors.green('0. 제어 명령 수신 MQTT 연결'));
 
 //-----------------------------------------------------Virtual Sensor Data-----------------------------------------------------//
 var IntervalFunction;
-var UPDATE_CONTENT_INTERVAL = 1000;
-var BASE_TEMP = 30;
-var BASE_HUMID = 60;
-var BASE_LUX = 80;
 //=============================================================================================================================//
 
 //--------------------------------------------Request ID를 생성하기 위한 RandomInt Function------------------------------------//
@@ -34,6 +48,7 @@ function randomInt (low, high) {
 
 MQTTClient();
 function MQTTClient(){
+
   
   var self = this;
   
@@ -66,8 +81,10 @@ function MQTTClient(){
 		
 		var createNode = reqHeader+op+to+fr+ty+ri+cty+nm+reqBody;
 		client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createNode, {qos : 1}, function(){
-			console.log(colors.blue('1. node 생성 요청'));
+			console.log(colors.yellow('1. node 생성 요청'));
 			isRunning = "node";
+			//console.log(colors.yellow(createNode));
+					
 		});
 //=============================================================================================================================//		
 	});
@@ -77,6 +94,7 @@ function MQTTClient(){
   });
   
 	client.on('error', function(error){
+	console.log(error);
     self.emit('error', error);
   });
 	
@@ -90,6 +108,7 @@ function MQTTClient(){
 			if(!err){
 //-------------------------------------------------------1. node 생성 subscribe------------------------------------------------//
 				if("node"==isRunning){
+					//console.log(colors.green(msgs));
 					console.log(colors.green('1. node 생성 결과'));
 					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
 						console.log(colors.white('이미 생성된 node 입니다.'));
@@ -114,7 +133,7 @@ function MQTTClient(){
 					var createRemoteCSE = reqHeader+op+to+fr+ty+ri+passCode+cty+nm+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID + "/"+config.AppEUI, createRemoteCSE, {qos : 1}, function(){
 						console.log(' ');
-						console.log(colors.blue('2. remoceCSE 생성 요청'));
+						console.log(colors.yellow('2. remoceCSE 생성 요청'));
 						isRunning = "remoteCSE";
 					});
 				}
@@ -147,7 +166,7 @@ function MQTTClient(){
 					var createContainer = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContainer, {qos : 1}, function(){
 						console.log(' ');
-						console.log(colors.blue('3. container 생성 요청'));
+						console.log(colors.yellow('3. container 생성 요청'));
 						isRunning = "container";
 					});
 				}
@@ -176,7 +195,7 @@ function MQTTClient(){
 					var createDevReset = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createDevReset, {qos : 1}, function(){
 						console.log(' ');
-						console.log(colors.blue('4. DevReset 생성 요청'));
+						console.log(colors.yellow('4. DevReset 생성 요청'));
 						isRunning = "DevReset";
 					});
 				}
@@ -205,7 +224,7 @@ function MQTTClient(){
 					var createRepImmediate = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepImmediate, {qos : 1}, function(){
 						console.log(' ');
-						console.log(colors.blue('4. RepImmediate 생성 요청'));
+						console.log(colors.yellow('4. RepImmediate 생성 요청'));
 						isRunning = "RepImmediate";
 					});
 				}
@@ -234,7 +253,7 @@ function MQTTClient(){
 					var createRepPerChange = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepPerChange, {qos : 1}, function(){
 						console.log(' ');
-						console.log(colors.blue('4. RepPerChange 생성 요청'));
+						console.log(colors.yellow('4. RepPerChange 생성 요청'));
 						isRunning = "RepPerChange";
 					});
 				}
@@ -249,10 +268,39 @@ function MQTTClient(){
 					console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/mgmtCmd-' + config.nodeID + '_' + isRunning);
 //=============================================================================================================================//
 
+//---------------------------4. 장치 제어를 위한 device mgmtCmd extDevMgmt 리소스 생성 요청----------------------------------//
+					var op = "<op>1</op>";
+					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+					var fr = "<fr>"+config.nodeID+"</fr>";
+					var ty = "<ty>12</ty>";
+					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+					var nm = "<nm>"+config.nodeID+"_"+config.extDevMgmt+"</nm>";
+					var dKey = "<dKey>"+config.dKey+"</dKey>";
+					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+					var reqBody = "<pc><mgc><cmt>"+config.extDevMgmt+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
+					
+					var createRepPerChange = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
+					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepPerChange, {qos : 1}, function(){
+						console.log(' ');
+						console.log(colors.yellow('4. extDevMgmt 생성 요청'));
+						isRunning = "extDevMgmt";
+					});
+				}
+//=============================================================================================================================//
+
+//---------------------4. 장치 제어를 위한 device mgmtCmd extDevMgmt 리소스 생성 요청 subscribe------------------------------//
+				else if("extDevMgmt"==isRunning){
+					console.log(colors.green('4. mgmtCmd 생성 결과'));	
+					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
+						console.log(colors.white('이미 생성된 extDevMgmt입니다.'));
+					}
+					console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/mgmtCmd-' + config.nodeID + '_' + isRunning);
+//=============================================================================================================================//
+
 //------------------------------5. 센서 데이터 전송을 위한 ContentInstance 리소스 생성 요청------------------------------------//					
 					console.log(' ');
-					console.log(colors.blue('5. ContentInstance 생성 요청'));
-					IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
+					console.log(colors.yellow('5. ContentInstance 생성 요청'));
+					IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL); // 주기적인 contentInstance 생성
 					isRunning = "ContentInstance";
 				}
 //=============================================================================================================================//
@@ -315,12 +363,6 @@ function MQTTClient(){
 
 //--------------------------------------------------ContentInstance publish----------------------------------------------------//  
  function IntervalProcess(){
-
-	 //Create Random Virtual Value
-      var value_TEMP = Math.floor(Math.random() * 5) + BASE_TEMP;
-	  var value_HUMID = Math.floor(Math.random() * 5) + BASE_HUMID;
-	  var value_LUX = Math.floor(Math.random() * 5) + BASE_LUX;
-	  
 	  var op = "<op>1</op>";
 	  var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"/container-"+config.containerName+"</to>";
 	  var fr = "<fr>"+config.nodeID+"</fr>";
@@ -328,11 +370,12 @@ function MQTTClient(){
 	  var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
 	  var dKey = "<dKey>"+config.dKey+"</dKey>";
 	  var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-	  var reqBody = "<pc><cin><cnf>text</cnf><con>"+value_TEMP.toString()+","+value_HUMID.toString()+","+value_LUX.toString()+"</con></cin></pc></m2m:req>";
-	  
+	  var reqBody = "<pc><cin><cnf>text</cnf><con>"+config.contents()+"</con></cin></pc></m2m:req>";
+	 
 	  var createContentInstance = reqHeader+op+to+fr+ty+ri+cty+dKey+reqBody;
 	  client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContentInstance, {qos : 1}, function(){
-		});
+					
+	  });
     }
 //=============================================================================================================================//
 
@@ -340,16 +383,20 @@ function MQTTClient(){
 //----------------------------------------------------mgmtCmd요청 처리 부분----------------------------------------------------//
 function processCMD(req, cmt){
 	if(cmt=='RepImmediate'){
-		BASE_TEMP = 10;
+		config.BASE_TEMP = 10;
 	}
 	else if(cmt=='RepPerChange'){
-		UPDATE_CONTENT_INTERVAL = req.cmd*1000;
-		console.log('UPDATE_CONTENT_INTERVAL: ' + UPDATE_CONTENT_INTERVAL);
+		config.UPDATE_CONTENT_INTERVAL = req.cmd*1000;
+		console.log('UPDATE_CONTENT_INTERVAL: ' + config.UPDATE_CONTENT_INTERVAL);
 		clearInterval(IntervalFunction);
-		IntervalFunction = setInterval(IntervalProcess, UPDATE_CONTENT_INTERVAL);
+		IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL);
 	}
 	else if(cmt=='DevReset'){
-		BASE_TEMP = 30;		
+		config.BASE_TEMP = 30;		
+	}
+	else if(cmt=='extDevMgmt'){
+		console.log("commamd Type : " + cmt);
+		console.log("commamd : " + req.cmd);
 	}
 	else{
 		console.log('Unknown CMD');
@@ -360,4 +407,4 @@ function processCMD(req, cmt){
   
 
 }
-			
+

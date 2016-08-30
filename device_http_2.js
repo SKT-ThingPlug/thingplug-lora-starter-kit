@@ -116,7 +116,7 @@ httpReq({
   },
   body : {nod : 
   {ni : config.nodeID,								//등록하는 CSE의 LTID 사용
-   mga : config.responseAddress						//등록하는 CSE의 물리적 접근 식별자 또는 주소
+   mga :  'HTTP|' + config.responseAddress						//등록하는 CSE의 물리적 접근 식별자 또는 주소
   }}
 
 //=============================================================================================================================//

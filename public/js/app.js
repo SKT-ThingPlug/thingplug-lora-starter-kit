@@ -1,65 +1,56 @@
+/*
+ ThingPlug StarterKit for LoRa version 0.1
+ 
+ Copyright © 2016 IoT Tech. Lab of SK Telecom All rights reserved.
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+	http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+*/
 
 "use strict";
 
 jQuery(document).ready(function() {
-	var data = [0];
-	var data_humid = [0];
-	var data_temp = [0];
-	var data_lux = [0];
-
-	var time = [0];
-
-	var Data_Firm = [0];
-	var Data_NodeID_1 = [0];
-	var Data_NodeID_2 = [0];
-
-
-	var Data_NodeID = [0];
-
-	var nodeIndex=0;
+	var data = [0];					// 디바이스의 Raw Data 확인	
+	var data_humid = [0];			// 웹페이지에 출력되는 습도값
+	var data_temp = [0];			// 웹페이지에 출력되는 온도값
+	var data_lux = [0];				// 웹페이지에 출력되는 조도값
+	var Data_Firm = [0];			// 웹페이지에 출력되는 가상의 Firmware Version
+	var Data_NodeID = [0];			// 웹페이지에 출력되는 LTID
 	
+	var numOfDevice = 1;			// 웹페이지에서 확인할 디바이스의 갯수 (config.js의 갯수)
+	var nodeIndex=0;				// 현재 출력되는 (config-1) 정보 ex) nodeIndex =0 -> config_1 정보	
+	var period = 1;					// getLatestData 주기 sec (RepPerChange 명령에 의해 변경)
+	var container_name = 'LoRa';	// 생성한 container의 이름 (config.js 수정)
 
-	var period = 1;
-	var Firm_Ver = [];
+	var Firm_Ver = [];				// 가상의 Firmware Version 정보 저장
+	var nodeID = [];				// LTID 정보 저장
+	var delimiter = [];				// 디바이스에서 전달되는 <con> 데이터의 구분자 (config.js 수정)
 
-	var MAX_DATA = 30;
+	var MAX_DATA = 30;				// 그래프에 표시되는 데이터의 갯수			
+	var map = null;					// 지도 정보
+
+	var valueIF = null;				// 트리거 상태 값 (트리거로 등록한 센서의 현재 값)
+	var trigger_sensor = null;		// 트리거로 등록한 센서 종류
+	var trigger_if = null;			// 트리거 옵션(크다, 작다, 같다)
+	var trigger_value = null;		// 트리거 기준 값
+	var trigger_way = null;			// 알림방식
+	var trigger_nodeID = null;		// 알림받을 LTID
+	var output_string = null;		// 알림메시지
 	
-	var recent_ri = 0;
-	var container_name = 'LoRa';
-
-	var nodeID = [];  
-
-	var numOfDevice = 1;
-
-
-	var map = null;
-	var valueLat = null;
-	var valueLng = null;
-	var valueAlt = null;
-
-	var valueIF = null;
-
-	var emailAddress = null;
-
-	var emailOptions = {
+	var emailOptions = {			// 알림 메시지를 받을 이메일 정보
 		from: 'ThingPlug <skt.thingplug@gmail.com>',
 		to: null,
 		subject: 'ThingPlug Alert',
 		text: 'Temp : ' + data_temp[0].toString() + ', Humidity : ' + data_humid[0].toString() + ', Brightness : ' + data_lux[0].toString()
 	};
-	
-	var smsOptions = {
-		CONTENT : null,
-		RECEIVERS : null
-	};
-
-	
-	var trigger_sensor = null;	//센서 종류
-	var trigger_if = null;		//트리거 옵션(크다, 작다, 같다)
-	var trigger_value = null;	//트리거 기준 값
-	var trigger_way = null;		//알림방식
-	var trigger_nodeID = null;	//알림받을 nodeID
-	var output_string = null;	//메시지
 	
 //----------------------------------------- graph Related Variables---------------------------------------//
 
@@ -141,31 +132,9 @@ jQuery(document).ready(function() {
 	/* end of graph Related Variables */
 //=============================================================================================================================//
 
-	
-
-
-	function hextodec(hex) {
-		var final = 0;
-		var letters = { a : 10, b : 11, c : 12, d : 13, e : 14, f : 15 };
-		var len = hex.length;
-		for(var i=0;i<len;i++) {
-			var ch = hex.charAt(len-i-1);
-			if( ch in letters )
-			ch = letters[ch];
-			var shiftBy = 4*i; 
-			var sub = ch << shiftBy;
-			final += sub;
-		}
-		return final;
-	}
-
-	///////////////////////////////////////////
-
+//--------------------------------nodeID 및 Firmware Version 초기화---------------------------------------------------------------//
 	function getConfig(cb) {
-		if(nodeIndex==0)
-		var url = '/config_1';
-		else if(nodeIndex==1)
-		var url = '/config_2';
+		var url = '/config_'+(nodeIndex+1).toString();
 		$.get(url, function(data, status){
 			if(status == 'success'){
 				cb(null, data);
@@ -176,16 +145,14 @@ jQuery(document).ready(function() {
 			}
 		});
 	}
-//=============================================================================================================================//
 
-//--------------------------------nodeID 및 Firmware Version 초기화---------------------------------------------------------------//
-	
 	function callnodeID() {
 		for(var i=0;i<numOfDevice;i++) {
 			nodeIndex=i;
 			getConfig( function(err,config) {
 				nodeID.push(config.nodeID);	
 				Firm_Ver.push('0.1.0');
+				delimiter.push(config.delimiter);
 			});
 		}
 		nodeIndex=0;
@@ -209,7 +176,7 @@ jQuery(document).ready(function() {
 		});
 		
 	}
-	///////////////////////////////////////////
+	
 	function sendsms(cb) {
 		var url = '/sms';
 
@@ -236,13 +203,12 @@ jQuery(document).ready(function() {
 			myLatLng.push({lat: 37.54+(0.03*Math.floor(Math.random() * numOfDevice)), lng: 127.00+(0.05*Math.floor(Math.random() * numOfDevice))});
 		}
 		
-		
+
 		map = new google.maps.Map(document.getElementById('map'), {
 			center: myLatLng[0],
 			zoom: 10
 		});			
 		///////////////////////////////////////////
-		
 		function contentString(content){
 			return '<div id="content">'+
 			'<div id="siteNotice">'+
@@ -251,15 +217,14 @@ jQuery(document).ready(function() {
 			'nodeID : '+ content +
 			'</div>';
 		}
-
+		///////////////////////////////////////////
 		var infowindow = [];  
 		for (var i =0; i < numOfDevice; i++) {
 			infowindow.push(new google.maps.InfoWindow({
 				content: contentString(nodeID[i])
 			})  );
 		}  
-
-
+		///////////////////////////////////////////
 		var marker = [];  
 		for (var i =0; i < numOfDevice; i++) {
 			marker.push(new google.maps.Marker({
@@ -268,10 +233,7 @@ jQuery(document).ready(function() {
 				title: 'SKT LoRa Device',})
 			);	
 		}
-
-
 		///////////////////////////////////////////
-		
 		for (var j =0; j < numOfDevice; j++) {
 			google.maps.event.addListener(marker[j], 'click', InfoListener(j));
 		}
@@ -296,10 +258,8 @@ jQuery(document).ready(function() {
 				infowindow[j].open(map, marker[j]);
 			};
 		}	
-
+		///////////////////////////////////////////
 	}
-
-	initMap();
 //=============================================================================================================================//
 
 //-----------------------------------------------------그래프 초기화 및 생성-------------------------------------------------------//
@@ -399,11 +359,6 @@ jQuery(document).ready(function() {
 				var valueDate = valueTime.substr(0, 10);
 				var valueTimes = valueTime.substr(11, 8);
 				valueTime = valueDate + " " + valueTimes;
-
-				var ri = parseInt(data.ri.slice(2, data.ri.length));
-				if(ri > recent_ri){
-					recent_ri = ri;
-				}
 				
 				cb(null, valueTime, valuePrim);
 			}
@@ -460,9 +415,9 @@ jQuery(document).ready(function() {
 	setInterval(function(){
 		
 		getData(container_name, function(err,time,data_prim){
-			var valueTemp = data_prim.substr(0,2);
-			var valueHumid = data_prim.substr(3,2);
-			var valueLux = data_prim.substr(6,2);
+			var valueTemp = data_prim.split(delimiter[nodeIndex])[0];
+			var valueHumid = data_prim.split(delimiter[nodeIndex])[1];
+			var valueLux = data_prim.split(delimiter[nodeIndex])[2];
 			
 			insertData(data_temp,valueTemp, '#temp_value');
 			insertData(data_humid,valueHumid, '#humid_value');
@@ -497,7 +452,6 @@ jQuery(document).ready(function() {
 		if(trigger_nodeID == Data_NodeID[0]){
 			if((trigger_if == 1) && (valueIF < trigger_value) && valueIF){
 				isTrue = true;
-				
 			}
 			else if(trigger_if == 2 && valueIF == trigger_value){
 				isTrue = true;
@@ -539,8 +493,7 @@ jQuery(document).ready(function() {
 
 	$('#DevReset').on('click', function(event) {
 		$.post('/control',{cmt:'DevReset', cmd:'request'}, function(data,status){
-			toastr.success('Device Reset');
-			console.log(data);
+			toastr.error('Device Reset');
 		});
 	});
 //=============================================================================================================================//
@@ -549,8 +502,7 @@ jQuery(document).ready(function() {
 	
 	$('#RepPerChange').on('click', function(event) {
 		$.post('/control', {cmt:'RepPerChange', cmd: document.getElementById('input_value').value}, function(data,status){
-			toastr.info('Period Changed');
-			console.log(data);
+			toastr.success('Period Changed');
 			period=document.getElementById('input_value').value;
 		});
 	});
@@ -561,8 +513,16 @@ jQuery(document).ready(function() {
 	$('#RepImmediate').on('click', function(event) {
 		$.post('/control', {cmt:'RepImmediate',cmd:'request'}, function(data,status){
 			toastr.warning('Ariconditioner ON');
-			console.log(data);
-			Firm_Ver[nodeIndex] = '1.0.0';
+		});
+	});
+//=============================================================================================================================//
+
+//-------------------------------------extDevMgmt 버튼 클릭---------------------------------------//
+
+	$('#extDevMgmt').on('click', function(event) {
+		var reqcmd = document.getElementById('command_value').value;
+		$.post('/control', {cmt:'extDevMgmt',cmd: reqcmd}, function(data,status){
+			toastr.info('Your own mgmtCmd : "' + reqcmd + '"');
 		});
 	});
 //=============================================================================================================================//
@@ -599,7 +559,7 @@ jQuery(document).ready(function() {
 			
 			smsOptions.CONTENT = output_string;
 			sendsms( function(err,smsOptions) {
-				alert('Sent SMS'+ output_string);
+				alert('SMS : no Service');
 			});
 		}
 		else if(trigger_way == "E-Mail" && sign_if){//메일로 알림을 설정한 경우

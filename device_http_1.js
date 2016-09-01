@@ -92,6 +92,10 @@ function processCMD(req, cmt){
 	else if(cmt=='DevReset'){						//디바이스 리셋
 		BASE_TEMP = 30;		
 	}
+	else if(cmt=='extDevMgmt'){
+		console.log("commamd Type : " + cmt);
+		console.log("commamd : " + req.cmd);
+	}
 	else{
 		console.log('Unknown CMD');
 	}
@@ -291,6 +295,8 @@ httpReq({
     exe : true,             					//장치 제어를 위한 Trigger Attribute (true/false) / (exe == execEnable))
     ext : config.nodeRI     					//제어되는 장치의 식별자로 제어하고자 하는 장치의 <node> 자원 식별자를 명시함 (ext == exeTarget)
   }}
+  
+ });
 //=============================================================================================================================//
 
 //---------------------4. 장치 제어를 위한 device mgmtCmd RepImmediate 리소스 생성 요청 Response-------------------------------//
@@ -300,12 +306,49 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
     console.log('이미 생성된 mgmtCmd 입니다.');
   }
   console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
+  
+  
+  //---------------------------4. 장치 제어를 위한 device mgmtCmd extDevMgmt 리소스 생성 요청----------------------------------//
+  return httpReq({
+    options: {
+	  host: config.TPhost,
+      port: config.TPport,
+      path : '/'+config.AppEUI+'/'+config.version,	
+      method: 'POST',
+      headers : {
+        'Accept': 'application/json',											//Response 받을 형태를 JSON으로 설정
+        dkey : config.dKey,														//mgmtCmd 생성을 위한 device Key (remoteCSE를 생성할때 발급)
+        'X-M2M-Origin': config.nodeID,											//해당 요청 메시지 송신자의 식별자
+        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),				//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
+        'X-M2M-NM': config.nodeID+'_'+config.extDevMgmt,						//해당 요청으로 생성하게 되는 자원의 이름 - extDevMgmt (NM == Name)
+        'Content-Type': 'application/json;ty=12'								//JSON형태의 데이터 전송, ty == 12은 생성하고자 하는 mgmtCmd 자원을 의미함
+      }
+    },
+    body: {mgc:{
+    cmt : config.extDevMgmt,   				//장치 제어 형태 (예, RepImmediate, DevReset, RepPerChange 등) / (cmt == cmdType)
+    exe : true,             					//장치 제어를 위한 Trigger Attribute (true/false) / (exe == execEnable))
+    ext : config.nodeRI     					//제어되는 장치의 식별자로 제어하고자 하는 장치의 <node> 자원 식별자를 명시함 (ext == exeTarget)
+  }}
+  
+ });
+//=============================================================================================================================//
+
+//---------------------4. 장치 제어를 위한 device mgmtCmd extDevMgmt 리소스 생성 요청 Response-------------------------------//
+  }).then(function(result){
+console.log(colors.green('4. mgmtCmd 생성 결과'));	
+  if(result.statusCode == 409){
+    console.log('이미 생성된 mgmtCmd 입니다.');
+  }
+  console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
+  
   if(result.headers){
     console.log(colors.green('4. content Instance 주기적 생성 시작'));
 	IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL);
   }
-  });
+
 //=============================================================================================================================//
+
+
 }).catch(function(err){
   console.log(err);
 });
@@ -362,7 +405,12 @@ function updateExecInstance(ei, mgmtCmdprefix){
         'Content-Type': 'application/json'									//JSON형태의 데이터 전송, ty == 4은 생성하고자 하는 contentInstance 자원을 의미함
       }
     },
-    body : {}
+    body : {
+		exin : {
+			exs : 3,
+			exr : 0
+		}
+	}
 //=============================================================================================================================//
 
 //----------------------------------------- 6. mgmtCmd 수행 결과 전달 updateExecInstance Respon--------------------------------//

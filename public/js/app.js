@@ -36,12 +36,17 @@ jQuery(document).ready(function() {
 
 	var MAX_DATA = 30;				// 그래프에 표시되는 데이터의 갯수			
 	var map = null;					// 지도 정보
+	
+	var valueLat = "0";				// 지도에 표시될 디바이스의 위도 Tmp
+	var valueLng = "0";				// 지도에 표시될 디바이스의 경도 Tmp
+	var result_lat = new Array();	// 지도에 표시될 디바이스의 위도 보관
+	var result_lng = new Array();	// 지도에 표시될 디바이스의 경도 보관
 
 	var valueIF = null;				// 트리거 상태 값 (트리거로 등록한 센서의 현재 값)
-	var trigger_sensor = null;		// 트리거로 등록한 센서 종류
-	var trigger_if = null;			// 트리거 옵션(크다, 작다, 같다)
-	var trigger_value = null;		// 트리거 기준 값
-	var trigger_way = null;			// 알림방식
+	var trigger_sensor = null;		// 트리거로 등록한 센서 종류(온도, 습도, 조도)
+	var trigger_if = null;			// 트리거 옵션(이상|이하|같음)
+	var trigger_value = null;		// 트리거 기준 값 (ex : 센서의 value값 이상|이하|같음 인 경우 메시지 전송)
+	var trigger_way = null;			// 알림방식 (E-MAIL만 지원)
 	var trigger_nodeID = null;		// 알림받을 LTID
 	var output_string = null;		// 알림메시지
 	
@@ -200,7 +205,11 @@ jQuery(document).ready(function() {
 		var myLatLng = [];
 		
 		for (var i =0; i < numOfDevice; i++) {
-			myLatLng.push({lat: 37.54+(0.03*Math.floor(Math.random() * numOfDevice)), lng: 127.00+(0.05*Math.floor(Math.random() * numOfDevice))});
+			
+			if(result_lat[i] == "undefined" || result_lat[i] == null)
+				myLatLng.push({lat: 37.566501, lng: 126.985047 + (0.02*i)});
+			else
+				myLatLng.push({lat: parseFloat(result_lat[i]), lng: parseFloat(result_lng[i])});
 		}
 		
 
@@ -360,7 +369,29 @@ jQuery(document).ready(function() {
 				var valueTimes = valueTime.substr(11, 8);
 				valueTime = valueDate + " " + valueTimes;
 				
-				cb(null, valueTime, valuePrim);
+				
+				var valuegwl = "000";
+				var valueGEUI = "undefined";
+				if(data.ppt == null){
+					valueLat = "undefined";
+					valueLng = "undefined";
+				}
+				else if(data.ppt != null || data.ppt.gwl != null || data.ppt.gwl.split(",")[1] != null){
+					valuegwl = data.ppt.gwl;
+					valueGEUI = data.ppt.geui;
+				
+					result = valuegwl.split(",");
+					
+					valueLat = result[0];
+					valueLng = result[1];
+					valueAlt = result[2];
+				}
+				
+				result_lat[nodeIndex] = deepCopy(valueLat);
+				result_lng[nodeIndex] = deepCopy(valueLng);
+				
+				
+				cb(null, valueTime, valuePrim, valuegwl, valueGEUI);
 			}
 			else {
 				console.log('[Error] /data API return status :'+status);
@@ -414,7 +445,7 @@ jQuery(document).ready(function() {
 		
 	setInterval(function(){
 		
-		getData(container_name, function(err,time,data_prim){
+		getData(container_name, function(err,time,data_prim, gwl, geui){
 			var valueTemp = data_prim.split(delimiter[nodeIndex])[0];
 			var valueHumid = data_prim.split(delimiter[nodeIndex])[1];
 			var valueLux = data_prim.split(delimiter[nodeIndex])[2];
@@ -572,5 +603,22 @@ jQuery(document).ready(function() {
 		}
 	});
 //=============================================================================================================================//
-
+//=============================================================================================================================//
+function deepCopy(obj) {
+    if (Object.prototype.toString.call(obj) === '[object Array]') {
+        var out = [], i = 0, len = obj.length;
+        for ( ; i < len; i++ ) {
+            out[i] = arguments.callee(obj[i]);
+        }
+        return out;
+    }
+    if (typeof obj === 'object') {
+        var out = {}, i;
+        for ( i in obj ) {
+            out[i] = arguments.callee(obj[i]);
+        }
+        return out;
+    }
+    return obj;
+}
 });

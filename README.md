@@ -160,6 +160,10 @@ module.exports = {
 | 2. remoteCSE 생성        | 서비스 및 remoteCSE ID와 passCode를 oneM2M 서버에 등록하고, 서비스에서 발생되는 데이터(dKey)를 저장합니다 .           | POST                      |
 | 3. container 생성        | 데이터를 저장해둘 container를 생성합니다. 파일시스템의 폴더와 같은 역할을 합니다.                                     | POST                      |
 | 4. mgmtCmd 생성          | 디바이스에서 받아들일 수 있는 제어 명령어를 포함하는 자원을 생성 합니다. LoRa의 경우 predefined된 command가 있습니다. | POST                      |
+| 4-1. DevReset            | LoRa 디바이스 리셋을 위한 mgmtCmd                                                                                     | POST                      |
+| 4-2. RepPerChange        | LoRa 디바이스의 Uplink(주기 보고) 주기 변경을 위한 mgmtCmd                                                            | POST                      |
+| 4-3. RepImmediate        | LoRa 디바이스의 Uplink(주기 보고) 즉시 보고를 위한 mgmtCmd                                                            | POST                      |
+| 4-4. extDevMgmt          | 사용자 지정 mgmtCmd (설정 방법은 API 문서 참조)                                                                       | POST                      |
 | 5. Content Instance 생성 | 센서의 측정값을 지정한 컨테이너에 기록합니다.                                                                         | POST                      |
 | 6. execInstance 갱신     | ThingPlug로부터 전달받은 execInstance의 결과를 갱신합니다.                                                            | PUT                       |
 
@@ -291,10 +295,10 @@ module.exports = {
 |------------------------------|------------------------------------------------------------|----------------|
 | 1. Content Instance 조회     | 가장 최근의 content Instance를 조회합니다.                 | HTTP GET       |
 | 2. mgmtCmd 요청              | Device로 보낼 제어 명령을 ThingPlug에게 보냅니다.          | HTTP POST      |
-| 2-1. DevReset                | LoRa 디바이스 리셋을 위한 mgmtCmd                          |                |
-| 2-2. RepPerChange            | LoRa 디바이스의 Uplink(주기 보고) 주기 변경을 위한 mgmtCmd |                |
-| 2-3. RepImmediate            | LoRa 디바이스의 Uplink(주기 보고) 즉시 보고를 위한 mgmtCmd |                |
-| 2-4. extDevMgmt              | 사용자 지정 mgmtCmd                                        |                |
+| 2-1. DevReset                | LoRa 디바이스 리셋을 위한 mgmtCmd                          | HTTP PUT       |
+| 2-2. RepPerChange            | LoRa 디바이스의 Uplink(주기 보고) 주기 변경을 위한 mgmtCmd | HTTP PUT       |
+| 2-3. RepImmediate            | LoRa 디바이스의 Uplink(주기 보고) 즉시 보고를 위한 mgmtCmd | HTTP PUT       |
+| 2-4. extDevMgmt              | 사용자 지정 mgmtCmd (설정 방법은 API 문서 참조)            | HTTP PUT       |
 | 3. mgmtCmd execInstance 조회 | Device로 보낸 제어 명령의 상태를 조회 합니다.              | HTTP GET       |
 | 4. Sensor Display            | Sensor값(현재 온도, 습도, 조도) 그래프형태로 표시          | d3 API         |
 | 5. Google 지도 API           | LoRa Device 위치 표시                                      | Google API     |

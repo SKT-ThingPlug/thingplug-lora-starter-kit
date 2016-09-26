@@ -311,7 +311,7 @@ module.exports = {
 
 <img src="./media/image17.png" width="714" height="249" />
 
-그림 7-1 – Web App에서 버튼 이용한mgmtCmd 요청
+그림 7-1 – Web App에서 버튼 이용한 mgmtCmd 요청
 
 Application\_web 코드 예제
 

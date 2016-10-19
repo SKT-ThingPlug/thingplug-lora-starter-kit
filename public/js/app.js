@@ -22,15 +22,13 @@ jQuery(document).ready(function() {
 	var data_humid = [0];			// 웹페이지에 출력되는 습도값
 	var data_temp = [0];			// 웹페이지에 출력되는 온도값
 	var data_lux = [0];				// 웹페이지에 출력되는 조도값
-	var Data_Firm = [0];			// 웹페이지에 출력되는 가상의 Firmware Version
 	var Data_NodeID = [0];			// 웹페이지에 출력되는 LTID
 	
 	var numOfDevice = 1;			// 웹페이지에서 확인할 디바이스의 갯수 (config.js의 갯수)
 	var nodeIndex=0;				// 현재 출력되는 (config-1) 정보 ex) nodeIndex =0 -> config_1 정보	
 	var period = 1;					// getLatestData 주기 sec (RepPerChange 명령에 의해 변경)
-	var container_name = 'LoRa';	// 생성한 container의 이름 (config.js 수정)
+	var container_name = 'myContainer';	// 생성한 container의 이름 (config.js 수정)
 
-	var Firm_Ver = [];				// 가상의 Firmware Version 정보 저장
 	var nodeID = [];				// LTID 정보 저장
 	var delimiter = [];				// 디바이스에서 전달되는 <con> 데이터의 구분자 (config.js 수정)
 
@@ -137,7 +135,7 @@ jQuery(document).ready(function() {
 	/* end of graph Related Variables */
 //=============================================================================================================================//
 
-//--------------------------------nodeID 및 Firmware Version 초기화---------------------------------------------------------------//
+//--------------------------------nodeID 초기화---------------------------------------------------------------//
 	function getConfig(cb) {
 		var url = '/config_'+(nodeIndex+1).toString();
 		$.get(url, function(data, status){
@@ -156,7 +154,6 @@ jQuery(document).ready(function() {
 			nodeIndex=i;
 			getConfig( function(err,config) {
 				nodeID.push(config.nodeID);	
-				Firm_Ver.push('0.1.0');
 				delimiter.push(config.delimiter);
 			});
 		}
@@ -467,7 +464,6 @@ jQuery(document).ready(function() {
 			
 
 		});
-		insertData(Data_Firm,Firm_Ver[nodeIndex], '#FirmVer_value');
 		insertData(Data_NodeID,nodeID[nodeIndex], '#NodeID');
 		
 		updategraph(temp_obj);

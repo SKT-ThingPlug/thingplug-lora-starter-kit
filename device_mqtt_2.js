@@ -1,5 +1,5 @@
 /*
- ThingPlug StarterKit for LoRa version 0.1
+ ThingPlug StarterKit for LoRa version 0.2
  
  Copyright © 2016 IoT Tech. Lab of SK Telecom All rights reserved.
 
@@ -24,14 +24,14 @@ var async = require('async');
 var util = require('util');
 var mqtt = require('mqtt');
 
-//---------------------------------------------------------Connection 설정-----------------------------------------------------//
+//--------------------------------------------------------Connection Declaration-----------------------------------------------//
 var config = require('./config_2');
-console.log(colors.green('### ThingPlug - LoRa virtual Device###'));
+console.log(colors.green('### ThingPlug virtual Device###'));
 if(typeof config === 'undefined') {
-  return console.log(colors.red('먼저 config.js를 열어 optionData를 설정하세요. README.md에 Starterkit 실행 방법이 설명되어 있습니다.'));
+  return console.log(colors.red('if no config_#.js, please check README.md and check optionData in config file'));
 }
 
-console.log(colors.green('0. 제어 명령 수신 MQTT 연결'));
+console.log(colors.green('0. Connect with MQTT Broker'));
 
 //=============================================================================================================================//
 
@@ -40,328 +40,95 @@ console.log(colors.green('0. 제어 명령 수신 MQTT 연결'));
 var IntervalFunction;
 //=============================================================================================================================//
 
-//--------------------------------------------Request ID를 생성하기 위한 RandomInt Function------------------------------------//
+//-----------------------------------------------randomInt Function for Create Request ID--------------------------------------//
 function randomInt (low, high) {
 	return Math.floor(Math.random() * (high - low + 1) + low);
 }
 //=============================================================================================================================//
 
-MQTTClient();
-function MQTTClient(){
+  
+var self = this;
 
-  
-  var self = this;
-  
-  var isRunning = 1;
-  var reqHeader = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\">";
-  
-  var client = mqtt.connect('mqtt://'+config.TPhost, {
-	username:config.userID,			//MQTT broker로 접속을 위한 ID
-	password:config.uKey,			//MQTT broker로 접속을 위한 password
-	clientId:config.mqttClientId,	//MQTT Client ID
+var isRunning = 1;
+var reqHeader = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\">";
+
+var client = mqtt.connect('mqtt://'+config.TPhost, {
+	username:config.userID,			//user ID to connect with MQTT broker
+	password:config.uKey,			//password to connect with MQTT broker(uKey of portal)
+	clientId:config.mqttClientId,	//Client ID to connect with MQTT broker
 	clean:true						//clean session
-  });
-	client.on('connect', function () {
-		console.log('### mqtt connected ###');
-//----------------------------------------------------------Subscribe 설정-----------------------------------------------------//
-		client.subscribe("/oneM2M/req/+/"+ config.nodeID);		
-		client.subscribe("/oneM2M/resp/"+ config.nodeID +"/+");
+});
+client.on('connect', function () {
+	console.log('### mqtt connected ###');
+//---------------------------------------------------Subscribe Declaration-----------------------------------------------------//
+	client.subscribe("/oneM2M/req/+/"+ config.nodeID);		
+	client.subscribe("/oneM2M/resp/"+ config.nodeID +"/+");
 //=============================================================================================================================//
 
+	nodeCreationReq ();							//1. Request node Creation
+});
 
-//----------------------------------------------------------1. node 생성 요청--------------------------------------------------//
-		var op = "<op>1</op>";
-		var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-		var fr = "<fr>"+config.nodeID+"</fr>";
-		var ty = "<ty>14</ty>";
-		var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-		var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-		var nm = "<nm>"+config.nodeID+"</nm>";
-		var reqBody = "<pc><nod><ni>"+config.nodeID+"</ni><mga>MQTT|"+config.nodeID+"</mga></nod></pc></m2m:req>";
-		
-		var createNode = reqHeader+op+to+fr+ty+ri+cty+nm+reqBody;
-		client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createNode, {qos : 1}, function(){
-			console.log(colors.yellow('1. node 생성 요청'));
-			isRunning = "node";
-			//console.log(colors.yellow(createNode));
-					
-		});
-//=============================================================================================================================//		
-	});
-	
-  client.on('close', function(){
-		console.log('### mqtt disconnected ###');
-  });
-  
-	client.on('error', function(error){
+client.on('close', function(){
+	console.log('### mqtt disconnected ###');
+});
+
+client.on('error', function(error){
 	console.log(error);
-    self.emit('error', error);
+	self.emit('error', error);
+});
+
+client.on('message', function(topic, message){
+	if("ContentInstance"!=isRunning){
+	console.log(' ');
+	}
+	var msgs = message.toString().split(',');
+  
+	  xml2js.parseString( msgs, function(err, xmlObj){
+		if(!err){
+			if("node"==isRunning){
+				nodeCreationRes(xmlObj);		//1. node Creation Response
+				remoteCSECreationReq();			//2. Request remoteCSE Creation
+			}
+			else if("remoteCSE"==isRunning){
+				remoteCSECreationRes(xmlObj);	//2. remoteCSE Creation Response
+				containerCreationReq();			//3. Request container Creation
+			}
+			else if("container"==isRunning){
+				containerCreationRes(xmlObj);	//3. container Creation Response
+				DevResetCreationReq();			//4-1. Request DevReset(mgmtCmd) Creation
+			}
+			else if("DevReset"==isRunning){
+				DevResetCreationRes(xmlObj);	//4-1. DevReset(mgmtCmd) Creation Response
+				extDevMgmtCreationReq();		//4-2. Request extDevMgmt(mgmtCmd) Creation
+			}
+			else if("extDevMgmt"==isRunning){
+				extDevMgmtCreationRes(xmlObj);	//4-2. extDevMgmt(mgmtCmd) Creation Response
+				contentInstanceCreationReq ();	//5. Request ContentInstance Creation for Sensor Data	
+			}	
+			else if("ContentInstance"==isRunning){
+				try{
+					if(xmlObj['m2m:req']){
+						processCMD(xmlObj);				//mgmtCmd PUSH Message Subscribe
+						updateExecInstanceReq(xmlObj);	//6. Update mgmtCmd Execute Result - updateExecInstance
+					}
+					else if(xmlObj['m2m:rsp']['pc'][0]['cin'][0]['ty'][0] == 4){
+						contentInstanceCreationRes (xmlObj);	//5. ContentInstance Creation for Sensor Data Response
+					}
+				}
+				catch(e){
+					console.error(colors.yellow(msgs));
+					console.error(colors.yellow(e));
+				}
+			}
+			else if("updateExecInstance"==isRunning){
+				isRunning = "ContentInstance";
+			}
+		}
   });
 	
-	client.on('message', function(topic, message){			//mqtt subscribe message 수신
-		if("ContentInstance"!=isRunning){
-		console.log(' ');
-		}
-		var msgs = message.toString().split(',');
-	  
-		  xml2js.parseString( msgs, function(err, xmlObj){
-			if(!err){
-//-------------------------------------------------------1. node 생성 subscribe------------------------------------------------//
-				if("node"==isRunning){
-					//console.log(colors.green(msgs));
-					console.log(colors.green('1. node 생성 결과'));
-					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
-						console.log(colors.white('이미 생성된 node 입니다.'));
-					}
-					console.log("생성 node Resource ID : "+xmlObj['m2m:rsp']['pc'][0]['nod'][0]['ri'][0]);//
-					config.nodeRI = xmlObj['m2m:rsp']['pc'][0]['nod'][0]['ri'][0];
+});     
 
-					console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/' + isRunning + '-' + config.nodeID);
-//=============================================================================================================================//
-
-//-------------------------------------------------2. remoteCSE생성 요청(기기등록)---------------------------------------------//
-					var op = "<op>1</op>";
-					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-					var fr = "<fr>"+config.nodeID+"</fr>";
-					var ty = "<ty>16</ty>";
-					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-					var passCode = "<passCode>"+config.passCode+"</passCode>";
-					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-					var nm = "<nm>"+config.nodeID+"</nm>";
-					var reqBody = "<pc><csr><cst>3</cst><csi>"+config.nodeID+"</csi><rr>true</rr><nl>"+config.nodeRI+"</nl></csr></pc></m2m:req>";
-					
-					var createRemoteCSE = reqHeader+op+to+fr+ty+ri+passCode+cty+nm+reqBody;
-					client.publish("/oneM2M/req/"+ config.nodeID + "/"+config.AppEUI, createRemoteCSE, {qos : 1}, function(){
-						console.log(' ');
-						console.log(colors.yellow('2. remoceCSE 생성 요청'));
-						isRunning = "remoteCSE";
-					});
-				}
-//=============================================================================================================================//
-
-//----------------------------------------2. remoteCSE생성 요청(기기등록) subscribe--------------------------------------------//	
-				else if("remoteCSE"==isRunning){
-					console.log(colors.green('2. remoteCSE 생성 결과'));
-					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
-						console.log(colors.white('이미 생성된 remoteCSE 입니다.'));
-					}
-					console.log("디바이스 키 : "+xmlObj['m2m:rsp']['dKey'][0]);//
-					config.dKey = xmlObj['m2m:rsp']['dKey'][0];
-					
-					
-					console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/' + isRunning + '-' + config.nodeID);
-//=============================================================================================================================//
-
-//---------------------------------------------------3. container 생성 요청----------------------------------------------------//	
-					var op = "<op>1</op>";
-					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"</to>";
-					var fr = "<fr>"+config.nodeID+"</fr>";
-					var ty = "<ty>3</ty>";
-					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-					var nm = "<nm>"+config.containerName+"</nm>";
-					var dKey = "<dKey>"+config.dKey+"</dKey>";
-					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-					var reqBody = "<pc><cnt><lbl>con</lbl></cnt></pc></m2m:req>";
-					
-					var createContainer = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
-					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContainer, {qos : 1}, function(){
-						console.log(' ');
-						console.log(colors.yellow('3. container 생성 요청'));
-						isRunning = "container";
-					});
-				}
-//=============================================================================================================================//
-
-//--------------------------------------------3. container 생성 요청 subscribe-------------------------------------------------//
-				else if("container"==isRunning){
-					console.log(colors.green('3. container 생성 결과'));
-					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
-						console.log(colors.white('이미 생성된 container 입니다.'));
-					}
-					console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/remoteCSE-' + config.nodeID + '/' + isRunning + '-' + config.containerName);
-//=============================================================================================================================//
-
-//---------------------------4. 장치 제어를 위한 device mgmtCmd DevReset 리소스 생성 요청--------------------------------------//
-					var op = "<op>1</op>";
-					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-					var fr = "<fr>"+config.nodeID+"</fr>";
-					var ty = "<ty>12</ty>";
-					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-					var nm = "<nm>"+config.nodeID+"_"+config.DevReset+"</nm>";
-					var dKey = "<dKey>"+config.dKey+"</dKey>";
-					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-					var reqBody = "<pc><mgc><cmt>"+config.DevReset+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
-					
-					var createDevReset = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
-					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createDevReset, {qos : 1}, function(){
-						console.log(' ');
-						console.log(colors.yellow('4. DevReset 생성 요청'));
-						isRunning = "DevReset";
-					});
-				}
-//=============================================================================================================================//
-
-//---------------------4. 장치 제어를 위한 device mgmtCmd DevReset 리소스 생성 요청 subscribe----------------------------------//
-				else if("DevReset"==isRunning){
-					console.log(colors.green('4. mgmtCmd 생성 결과'));	
-					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
-						console.log(colors.white('이미 생성된 DevReset 입니다.'));
-					}
-					console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/mgmtCmd-' + config.nodeID + '_' + isRunning);
-//=============================================================================================================================//
-
-//---------------------------4. 장치 제어를 위한 device mgmtCmd RepImmediate 리소스 생성 요청----------------------------------//
-					var op = "<op>1</op>";
-					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-					var fr = "<fr>"+config.nodeID+"</fr>";
-					var ty = "<ty>12</ty>";
-					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-					var nm = "<nm>"+config.nodeID+"_"+config.RepImmediate+"</nm>";
-					var dKey = "<dKey>"+config.dKey+"</dKey>";
-					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-					var reqBody = "<pc><mgc><cmt>"+config.RepImmediate+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
-					
-					var createRepImmediate = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
-					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepImmediate, {qos : 1}, function(){
-						console.log(' ');
-						console.log(colors.yellow('4. RepImmediate 생성 요청'));
-						isRunning = "RepImmediate";
-					});
-				}
-//=============================================================================================================================//
-
-//---------------------4. 장치 제어를 위한 device mgmtCmd RepImmediate 리소스 생성 요청 subscribe------------------------------//
-				else if("RepImmediate"==isRunning){
-					console.log(colors.green('4. mgmtCmd 생성 결과'));	
-					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
-						console.log(colors.white('이미 생성된 RepImmediate 입니다.'));
-					}
-					console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/mgmtCmd-' + config.nodeID + '_' + isRunning);
-//=============================================================================================================================//
-
-//---------------------------4. 장치 제어를 위한 device mgmtCmd RepPerChange 리소스 생성 요청----------------------------------//
-					var op = "<op>1</op>";
-					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-					var fr = "<fr>"+config.nodeID+"</fr>";
-					var ty = "<ty>12</ty>";
-					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-					var nm = "<nm>"+config.nodeID+"_"+config.RepPerChange+"</nm>";
-					var dKey = "<dKey>"+config.dKey+"</dKey>";
-					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-					var reqBody = "<pc><mgc><cmt>"+config.RepPerChange+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
-					
-					var createRepPerChange = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
-					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepPerChange, {qos : 1}, function(){
-						console.log(' ');
-						console.log(colors.yellow('4. RepPerChange 생성 요청'));
-						isRunning = "RepPerChange";
-					});
-				}
-//=============================================================================================================================//
-
-//---------------------4. 장치 제어를 위한 device mgmtCmd RepPerChange 리소스 생성 요청 subscribe------------------------------//
-				else if("RepPerChange"==isRunning){
-					console.log(colors.green('4. mgmtCmd 생성 결과'));	
-					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
-						console.log(colors.white('이미 생성된 RepPerChange 입니다.'));
-					}
-					console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/mgmtCmd-' + config.nodeID + '_' + isRunning);
-//=============================================================================================================================//
-
-//---------------------------4. 장치 제어를 위한 device mgmtCmd extDevMgmt 리소스 생성 요청----------------------------------//
-					var op = "<op>1</op>";
-					var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-					var fr = "<fr>"+config.nodeID+"</fr>";
-					var ty = "<ty>12</ty>";
-					var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-					var nm = "<nm>"+config.nodeID+"_"+config.extDevMgmt+"</nm>";
-					var dKey = "<dKey>"+config.dKey+"</dKey>";
-					var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-					var reqBody = "<pc><mgc><cmt>"+config.extDevMgmt+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
-					
-					var createRepPerChange = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
-					client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepPerChange, {qos : 1}, function(){
-						console.log(' ');
-						console.log(colors.yellow('4. extDevMgmt 생성 요청'));
-						isRunning = "extDevMgmt";
-					});
-				}
-//=============================================================================================================================//
-
-//---------------------4. 장치 제어를 위한 device mgmtCmd extDevMgmt 리소스 생성 요청 subscribe------------------------------//
-				else if("extDevMgmt"==isRunning){
-					console.log(colors.green('4. mgmtCmd 생성 결과'));	
-					if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
-						console.log(colors.white('이미 생성된 extDevMgmt입니다.'));
-					}
-					console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/mgmtCmd-' + config.nodeID + '_' + isRunning);
-//=============================================================================================================================//
-
-//------------------------------5. 센서 데이터 전송을 위한 ContentInstance 리소스 생성 요청------------------------------------//					
-					console.log(' ');
-					console.log(colors.yellow('5. ContentInstance 생성 요청'));
-					IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL); // 주기적인 contentInstance 생성
-					isRunning = "ContentInstance";
-				}
-//=============================================================================================================================//
-	
-				else if("ContentInstance"==isRunning){
-						try{
-//----------------------------------------------------mgmtCmd요청 처리 부분----------------------------------------------------//
-							if(xmlObj['m2m:req']){//mgmtCmd Request
-								console.log(colors.red('#####################################'));
-								console.log(colors.red('MQTT 수신'));
-								console.log('RI : '+xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0]);		//Resource ID 출력, (ex : EI000000000000000)
-								console.log('CMT : '+xmlObj['m2m:req']['pc'][0]['exin'][0]['cmt'][0]);		//Type
-								console.log('EXRA : '+xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);	//CMD 출력
-								
-								var req = JSON.parse(xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);
-								var cmt = xmlObj['m2m:req']['pc'][0]['exin'][0]['cmt'][0];
-								
-								processCMD(req, cmt);
-//=============================================================================================================================//
-
-//----------------------------------------- 6. mgmtCmd 수행 결과 전달 updateExecInstance---------------------------------------//
-								var exin_ri = xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0];
-								
-								var op = "<op>3</op>";
-								var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/mgmtCmd-"+config.nodeID+"_"+cmt+"/execInstance-"+exin_ri+"</to>";
-								var fr = "<fr>"+config.nodeID+"</fr>";
-								var ty = "<ty>12</ty>";
-								var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-								var dKey = "<dKey>"+config.dKey+"</dKey>";
-								var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-								var reqBody = "<pc><exin><exs>3</exs><exr>0</exr></exin></pc></m2m:req>";
-					
-								var updateExecInstance = reqHeader+op+to+fr+ri+dKey+cty+reqBody;
-								client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, updateExecInstance, {qos : 1}, function(){
-									console.log(colors.red('#####################################'));
-									isRunning = "updateExecInstance";
-								});
-//=============================================================================================================================//
-							}
-//-------------------------5. 센서 데이터 전송을 위한 ContentInstance 리소스 생성 요청 subscribe-------------------------------//	
-							else if(xmlObj['m2m:rsp']['pc'][0]['cin'][0]['ty'][0] == 4){
-								console.log(colors.white('content : ' + xmlObj['m2m:rsp']['pc'][0]['cin'][0]['con'][0] + ', resourceID : '+ xmlObj['m2m:rsp']['pc'][0]['cin'][0]['ri'][0]));		
-							}
-//=============================================================================================================================//
-						}
-						catch(e){
-							console.error(colors.yellow(msgs));
-							console.error(e);
-						}
-				}
-//----------------------------------------- 6. mgmtCmd 수행 결과 전달 updateExecInstance---------------------------------------//
-				else if("updateExecInstance"==isRunning){
-					isRunning = "ContentInstance";
-				}
-//=============================================================================================================================//
-			}
-      });
-		
-  });     
-
-//--------------------------------------------------ContentInstance publish----------------------------------------------------//  
+//----------------------------------Request ContentInstance Creation for virtual Sensor Data---------------------------------------------//  
  function IntervalProcess(){
 	  var op = "<op>1</op>";
 	  var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"/container-"+config.containerName+"</to>";
@@ -379,11 +146,20 @@ function MQTTClient(){
     }
 //=============================================================================================================================//
 
+//----------------------------------------------------mgmtCmd PUSH Message Subscribe----------------------------------------------------//
+function processCMD(xmlObj){
+	
+	console.log(colors.red('#####################################'));
+	console.log(colors.red('MQTT Subscription'));
+	console.log('RI : '+xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0]);		//Resource ID, (ex : EI000000000000000)
+	console.log('CMT : '+xmlObj['m2m:req']['pc'][0]['exin'][0]['cmt'][0]);		//command Type
+	console.log('EXRA : '+xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);	//Execute Argument
 
-//----------------------------------------------------mgmtCmd요청 처리 부분----------------------------------------------------//
-function processCMD(req, cmt){
+	var req = JSON.parse(xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);
+	var cmt = xmlObj['m2m:req']['pc'][0]['exin'][0]['cmt'][0];
+	
 	if(cmt=='RepImmediate'){
-		config.BASE_TEMP = 20;
+		config.BASE_TEMP = 10;
 	}
 	else if(cmt=='RepPerChange'){
 		config.UPDATE_CONTENT_INTERVAL = req.cmd*1000;
@@ -392,7 +168,7 @@ function processCMD(req, cmt){
 		IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL);
 	}
 	else if(cmt=='DevReset'){
-		config.BASE_TEMP = 40;		
+		config.BASE_TEMP = 30;		
 	}
 	else if(cmt=='extDevMgmt'){
 		console.log("commamd Type : " + cmt);
@@ -403,8 +179,199 @@ function processCMD(req, cmt){
 	}
 }
 //=============================================================================================================================//
- 
-  
 
+//---------------------------------------------------1. Request node Creation--------------------------------------------------//
+function nodeCreationReq (){
+		var op = "<op>1</op>";
+		var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+		var fr = "<fr>"+config.nodeID+"</fr>";
+		var ty = "<ty>14</ty>";
+		var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+		var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+		var nm = "<nm>"+config.nodeID+"</nm>";
+		var reqBody = "<pc><nod><ni>"+config.nodeID+"</ni><mga>MQTT|"+config.nodeID+"</mga></nod></pc></m2m:req>";
+		
+		var createNode = reqHeader+op+to+fr+ty+ri+cty+nm+reqBody;
+		client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createNode, {qos : 1}, function(){
+			console.log(colors.yellow('1. Request node Creation'));
+			isRunning = "node";
+					
+		});
 }
+//=============================================================================================================================//	
 
+//---------------------------------------------------1. node Creation Response--------------------------------------------------//
+function nodeCreationRes (xmlObj){
+	console.log(colors.green('1. node Creation Response'));
+	if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
+		console.log(colors.white('Already exists node'));
+	}
+	console.log("Created node Resource ID : "+xmlObj['m2m:rsp']['pc'][0]['nod'][0]['ri'][0]);//
+	config.nodeRI = xmlObj['m2m:rsp']['pc'][0]['nod'][0]['ri'][0];
+
+	console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/' + isRunning + '-' + config.nodeID);
+}
+//=============================================================================================================================//	
+
+//---------------------------------------------------2. Request remoteCSE Creation--------------------------------------------------//
+function remoteCSECreationReq (){
+	var op = "<op>1</op>";
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+	var fr = "<fr>"+config.nodeID+"</fr>";
+	var ty = "<ty>16</ty>";
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+	var passCode = "<passCode>"+config.passCode+"</passCode>";
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	var nm = "<nm>"+config.nodeID+"</nm>";
+	var reqBody = "<pc><csr><cst>3</cst><csi>"+config.nodeID+"</csi><rr>true</rr><nl>"+config.nodeRI+"</nl></csr></pc></m2m:req>";
+	
+	var createRemoteCSE = reqHeader+op+to+fr+ty+ri+passCode+cty+nm+reqBody;
+	client.publish("/oneM2M/req/"+ config.nodeID + "/"+config.AppEUI, createRemoteCSE, {qos : 1}, function(){
+		console.log(' ');
+		console.log(colors.yellow('2. Request remoteCSE Creation '));
+		isRunning = "remoteCSE";
+	});
+}
+//=============================================================================================================================//	
+
+//---------------------------------------------------2. remoteCSE Creation Response--------------------------------------------------//
+function remoteCSECreationRes (xmlObj){
+	console.log(colors.green('2. remoteCSE Creation Response'));
+	if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
+		console.log(colors.white('Already exists remoteCSE'));
+	}
+	console.log("dKey : "+xmlObj['m2m:rsp']['dKey'][0]);//
+	config.dKey = xmlObj['m2m:rsp']['dKey'][0];
+	
+	console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/' + isRunning + '-' + config.nodeID);
+}
+//=============================================================================================================================//	
+
+//---------------------------------------------------3. Request container Creation--------------------------------------------------//
+function containerCreationReq (){
+	var op = "<op>1</op>";
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"</to>";
+	var fr = "<fr>"+config.nodeID+"</fr>";
+	var ty = "<ty>3</ty>";
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+	var nm = "<nm>"+config.containerName+"</nm>";
+	var dKey = "<dKey>"+config.dKey+"</dKey>";
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	var reqBody = "<pc><cnt><lbl>con</lbl></cnt></pc></m2m:req>";
+	
+	var createContainer = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
+	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContainer, {qos : 1}, function(){
+		console.log(' ');
+		console.log(colors.yellow('3. Request container Creation'));
+		isRunning = "container";
+	});
+}
+//=============================================================================================================================//	
+
+//---------------------------------------------------3. container Creation Response--------------------------------------------------//
+function containerCreationRes (xmlObj){
+	console.log(colors.green('3. container Creation Response'));
+	if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
+		console.log(colors.white('Already exists container'));
+	}
+	console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/remoteCSE-' + config.nodeID + '/' + isRunning + '-' + config.containerName);
+}
+//=============================================================================================================================//	
+
+//---------------------------------------------------4. Request DevReset(mgmtCmd) Creation--------------------------------------------------//
+function DevResetCreationReq (){
+	var op = "<op>1</op>";
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+	var fr = "<fr>"+config.nodeID+"</fr>";
+	var ty = "<ty>12</ty>";
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+	var nm = "<nm>"+config.nodeID+"_"+config.DevReset+"</nm>";
+	var dKey = "<dKey>"+config.dKey+"</dKey>";
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	var reqBody = "<pc><mgc><cmt>"+config.DevReset+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
+	
+	var createDevReset = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
+	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createDevReset, {qos : 1}, function(){
+		console.log(' ');
+		console.log(colors.yellow('4. Request DevReset(mgmtCmd) Creation'));
+		isRunning = "DevReset";
+	});
+}
+//=============================================================================================================================//	
+
+//---------------------------------------------------4.  DevReset(mgmtCmd Creation Response--------------------------------------------------//
+function DevResetCreationRes (xmlObj){
+	console.log(colors.green('4. DevReset(mgmtCmd) Creation Response'));	
+	if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
+		console.log(colors.white('Already exists DevReset'));
+	}
+	console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/mgmtCmd-' + config.nodeID + '_' + isRunning);
+}
+//=============================================================================================================================//
+
+//---------------------------------------------------4. Request extDevMgmt(mgmtCmd) Creation--------------------------------------------------//
+function extDevMgmtCreationReq (){
+	var op = "<op>1</op>";
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
+	var fr = "<fr>"+config.nodeID+"</fr>";
+	var ty = "<ty>12</ty>";
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+	var nm = "<nm>"+config.nodeID+"_"+config.extDevMgmt+"</nm>";
+	var dKey = "<dKey>"+config.dKey+"</dKey>";
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	var reqBody = "<pc><mgc><cmt>"+config.extDevMgmt+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
+	
+	var createRepPerChange = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
+	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepPerChange, {qos : 1}, function(){
+		console.log(' ');
+		console.log(colors.yellow('4. Request extDevMgmt(mgmtCmd) Creation'));
+		isRunning = "extDevMgmt";
+	});
+}
+//=============================================================================================================================//	
+
+//---------------------------------------------------4.  extDevMgmt(mgmtCmd) Creation Response--------------------------------------------------//
+function extDevMgmtCreationRes (xmlObj){
+	console.log(colors.green('4. extDevMgmt(mgmtCmd) Creation Response'));	
+	if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
+		console.log(colors.white('Already exists extDevMgmt'));
+	}
+	console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/mgmtCmd-' + config.nodeID + '_' + isRunning);
+}
+//=============================================================================================================================//	
+
+//---------------------------------------------------5. Request contentInstance Creation--------------------------------------------------//
+function contentInstanceCreationReq (){
+	console.log(' ');
+	console.log(colors.yellow('5. Request ContentInstance Creation for Sensor Data'));
+	IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL); // Regular contentInstance Creation
+	isRunning = "ContentInstance";
+}
+//=============================================================================================================================//	
+
+//---------------------------------------------------5. contentInstance Creation Response--------------------------------------------------//
+function contentInstanceCreationRes (xmlObj){
+	console.log(colors.white('content : ' + xmlObj['m2m:rsp']['pc'][0]['cin'][0]['con'][0] + ', resourceID : '+ xmlObj['m2m:rsp']['pc'][0]['cin'][0]['ri'][0]));	
+}
+//=============================================================================================================================//
+
+//---------------------------------------------------5. updateExecInstance Request--------------------------------------------------//
+function updateExecInstanceReq (xmlObj){
+	var exin_ri = xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0];
+	
+	var op = "<op>3</op>";
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/mgmtCmd-"+config.nodeID+"_"+cmt+"/execInstance-"+exin_ri+"</to>";
+	var fr = "<fr>"+config.nodeID+"</fr>";
+	var ty = "<ty>12</ty>";
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
+	var dKey = "<dKey>"+config.dKey+"</dKey>";
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	var reqBody = "<pc><exin><exs>3</exs><exr>0</exr></exin></pc></m2m:req>";
+
+	var updateExecInstance = reqHeader+op+to+fr+ri+dKey+cty+reqBody;
+	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, updateExecInstance, {qos : 1}, function(){
+		console.log(colors.red('#####################################'));
+		isRunning = "updateExecInstance";
+	});
+}
+//=============================================================================================================================//

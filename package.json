@@ -1,5 +1,5 @@
 {
-  "name": "thingplug-starter-kit",
+  "name": "thingplug-lora-starter-kit",
   "version": "0.2.0",
   "description": "SKT의 ThingPlug Starter Kit",
   "scripts": {
@@ -7,6 +7,7 @@
     "app": "node application_web.js"
 
   },
+  "repository" : "npm/npm",
   "keywords": [
     "skt",
     "iot",

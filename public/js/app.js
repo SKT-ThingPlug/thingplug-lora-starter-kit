@@ -179,20 +179,6 @@ jQuery(document).ready(function() {
 		
 	}
 	
-	function sendsms(cb) {
-		var url = '/sms';
-
-		$.post(url, smsOptions, function(data,status){
-			if(status == 'success'){
-				cb(null, smsOptions);
-			}
-			else {
-				console.log('[Error] /config API return status :'+status);
-				cb({error: status}, null);
-			}
-		});
-		
-	}
 //=============================================================================================================================//
 
 
@@ -487,14 +473,7 @@ jQuery(document).ready(function() {
 			else if(trigger_if == 3 && valueIF > trigger_value){
 				isTrue = true;;
 			}
-			if(isTrue && trigger_way == "PHONE"){
-				smsOptions.CONTENT = output_string;
-				sendsms( function(err,smsOptions) {
-					alert('Sent SMS : ' + output_string);
-				});
-				trigger_if = 0;
-			}
-			else if(isTrue && trigger_way == "E-Mail"){
+			if(isTrue && trigger_way == "E-Mail"){
 				emailOptions.text = output_string;
 				sendmail( function(err,emailOptions) {
 					alert('Sent E-MAIL : '+ output_string);
@@ -521,25 +500,6 @@ jQuery(document).ready(function() {
 	$('#DevReset').on('click', function(event) {
 		$.post('/control',{cmt:'DevReset', cmd:'request'}, function(data,status){
 			toastr.error('Device Reset');
-		});
-	});
-//=============================================================================================================================//
-
-//-------------------------------------RepPerChange 버튼 클릭---------------------------------------//
-	
-	$('#RepPerChange').on('click', function(event) {
-		$.post('/control', {cmt:'RepPerChange', cmd: document.getElementById('input_value').value}, function(data,status){
-			toastr.success('Period Changed');
-			period=document.getElementById('input_value').value;
-		});
-	});
-//=============================================================================================================================//
-
-//-------------------------------------RepImmediate 버튼 클릭---------------------------------------//
-
-	$('#RepImmediate').on('click', function(event) {
-		$.post('/control', {cmt:'RepImmediate',cmd:'request'}, function(data,status){
-			toastr.warning('Ariconditioner ON');
 		});
 	});
 //=============================================================================================================================//
@@ -580,16 +540,7 @@ jQuery(document).ready(function() {
 		}	
 		output_string = "Check, when "+trigger_nodeID+ " is " + trigger_sensor + sign_if + trigger_value + ", it will be notified";
 		
-		if(trigger_way == "PHONE" && sign_if){
-			smsOptions.RECEIVERS = [document.getElementById('action_type_value').value];
-			
-			
-			smsOptions.CONTENT = output_string;
-			sendsms( function(err,smsOptions) {
-				alert('SMS : no Service');
-			});
-		}
-		else if(trigger_way == "E-Mail" && sign_if){//메일로 알림을 설정한 경우
+		if(trigger_way == "E-Mail" && sign_if){//메일로 알림을 설정한 경우
 			emailOptions.text = output_string;
 			emailOptions.to = document.getElementById('action_type_value').value;
 			sendmail( function(err,emailOptions) {

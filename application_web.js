@@ -85,7 +85,7 @@ app.post('/control', function(req,res) {
   var cmd = JSON.stringify(req.body);
   console.log("{\"cmd\":\""+req.body.cmd+"\"}");
   console.log("{\"cmt\":\""+req.body.cmt+"\"}");
-  reqMgmtCmd(req.body.cmt, "{\"cmd\":\""+req.body.cmd+"\"}", config[configIndex].nodeRI, function(err, data){
+  reqMgmtCmd(req.body.cmt, "{\"cmd\":\""+req.body.cmd+"\"}", function(err, data){
 
     if(err) return res.send({'error':err});
     return res.send({'result':'ok'});
@@ -147,7 +147,7 @@ httpReq({
 //---------------------------------------------------- 2. mgmCmd 요청----------------------------------------------------------//
 
 
-function reqMgmtCmd(mgmtCmdPrefix, cmd, nodeRI, cb){
+function reqMgmtCmd(mgmtCmdPrefix, cmd, cb){
 // 2. mgmCmd 요청
 	httpReq({ 
     options: {
@@ -166,8 +166,7 @@ function reqMgmtCmd(mgmtCmdPrefix, cmd, nodeRI, cb){
 		body : {mgc:{
     exra : cmd,			//제어 요청(일반적으로 원격 장치를 RPC호출)을 위한 Argument 정의 (exra == execReqArgs)
     exe : true,						//제어 요청 Trigger 속성으로 해당 속성은 (True/False로 표현) (exe == execEnabler)
-	cmt : mgmtCmdPrefix,
-	ext : nodeRI
+	cmt : mgmtCmdPrefix
   }}
 }).then(function(result){
   console.log(colors.green('mgmtCmd 제어 요청'));

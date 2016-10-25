@@ -21,15 +21,14 @@ var colors = require('colors');
 var parseString = require('xml2js').parseString;
 
 
-//-------------------------------------------------------Connection 설정-------------------------------------------------------//
+//--------------------------------------------------------Connection Declaration-----------------------------------------------//
 var config = require('./config_2');
 var httpReq = require('./promise-http').request;
 var httpRes = require('http');
 
-console.log(colors.green('### ThingPlug - LoRa virtual Device###'));
+console.log(colors.green('### ThingPlug virtual Device###'));
 if(typeof config == 'undefined') {
-  console.log(colors.red('먼저 config.js를 열어 config를 설정하세요. README.md에 Starterkit 실행 방법이 설명되어 있습니다.'));
-  return;
+  return console.log(colors.red('if no config_#.js, please check README.md and check optionData in config file'));
 }
 //=============================================================================================================================//
 
@@ -38,31 +37,31 @@ if(typeof config == 'undefined') {
 var IntervalFunction;
 //=============================================================================================================================//
 
-//--------------------------------------------Request ID를 생성하기 위한 RandomInt Function------------------------------------//
+//-----------------------------------------------randomInt Function for Create Request ID--------------------------------------//
 function randomInt (low, high) {
 	return Math.floor(Math.random() * (high - low + 1) + low);
 }
 //=============================================================================================================================//
 
 
-//----------------------------------------------mgmtCmd를 받기 위한 HTTP Server------------------------------------------------//
+//-----------------------------------HTTP client Server to get mgmtCmd PUSH Message-----------------------------------------//
 httpRes.createServer(function (req, res) {
 
-    console.log(colors.green('mgmtCmd 제어 요청'));  
+    console.log(colors.green('mgmtCmd PUSH Message'));  
 	req.on('data', function (chunk) {
 		parseString( chunk, function(err, xmlObj){
 			if(!err){
 				
 				try{
-					console.log('RI : '+xmlObj['m2m:exin']['ri'][0]);		//Resource ID 출력, (ex : EI000000000000000)
+					console.log('RI : '+xmlObj['m2m:exin']['ri'][0]);		//Resource ID (ex : EI000000000000000)
 					console.log('CMT : '+xmlObj['m2m:exin']['cmt'][0]);		//Type
-					console.log('EXRA : '+xmlObj['m2m:exin']['exra'][0]);	//CMD 출력
+					console.log('EXRA : '+xmlObj['m2m:exin']['exra'][0]);	//command Type
 					
 					var req = JSON.parse(xmlObj['m2m:exin']['exra'][0]);
 					var cmt = xmlObj['m2m:exin']['cmt'][0];	
 					processCMD(req, cmt);
 					var ei = xmlObj['m2m:exin']['ri'][0];
-					updateExecInstance(ei, cmt);						//동작 수행 완료 보고
+					updateExecInstance(ei, cmt);							//Update mgmtCmd Execute Result - updateExecInstance
 				}
 				catch(e){
 					console.error(chunk);
@@ -80,19 +79,10 @@ httpRes.createServer(function (req, res) {
 
 
 function processCMD(req, cmt){
-	if(cmt=='RepImmediate'){						//즉시보고
-		BASE_TEMP = 20;
+	if(cmt=='DevReset'){						//mgmtCmd DevReset
+		config.BASE_TEMP = 40;		
 	}
-	else if(cmt=='RepPerChange'){					//주기변경
-		config.UPDATE_CONTENT_INTERVAL = req.cmd*1000;
-		console.log('UPDATE_CONTENT_INTERVAL: ' + config.UPDATE_CONTENT_INTERVAL);
-		clearInterval(IntervalFunction);
-		IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL);
-	}
-	else if(cmt=='DevReset'){						//디바이스 리셋
-		BASE_TEMP = 40;		
-	}
-	else if(cmt=='extDevMgmt'){
+	else if(cmt=='extDevMgmt'){					//mgmtCmd extDevMgmt
 		console.log("commamd Type : " + cmt);
 		console.log("commamd : " + req.cmd);
 	}
@@ -103,7 +93,7 @@ function processCMD(req, cmt){
 //=============================================================================================================================//
 
 
-//------------------------------------------------ 1. node 생성 요청-----------------------------------------------------------//
+//---------------------------------------------------1. Request node Creation--------------------------------------------------//
 httpReq({ 
   options: {
 	  host: config.TPhost,
@@ -111,31 +101,31 @@ httpReq({
       path : '/'+config.AppEUI+'/'+config.version,
     method: 'POST',
     headers : {
-      'X-M2M-Origin': config.nodeID,								//해당 요청 메시지 송신자의 식별자
-      'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),		//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
-      'X-M2M-NM': config.nodeID,           							//해당 요청으로 생성하게 되는 자원의 이름 (NM == Name)
-      'Accept': 'application/json',									//Response 받을 형태를 JSON으로 설정
-      'Content-Type': 'application/json;ty=14', 					//JSON형태의 데이터 전송, ty는 생성하고자 하는 Resource Type의 식별자 (ty == 14은 node를 의미함)
+      'X-M2M-Origin': config.nodeID,								// X-M2M-Origin header value shall be specified by the composer of the request(originator)
+      'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),		// X-M2M-RI header shall be mapped to the Request Identifier parameter
+      'X-M2M-NM': config.nodeID,           							// X-M2M-NM header shall be mapped to the Name parameter
+      'Accept': 'application/json',									// Originator may use the Accept header to indicate which content-type is supported. 
+      'Content-Type': 'application/json;ty=14', 					// containing Req message-body shall include the Content-type header set to one (ty == 14 is node)
     }
   },
   body : {nod : 
-  {ni : config.nodeID,								//등록하는 CSE의 LTID 사용
-   mga :  'HTTP|' + config.responseAddress						//등록하는 CSE의 물리적 접근 식별자 또는 주소
+  {ni : config.nodeID,											// LTID
+   mga :  'HTTP|' + config.responseAddress						// mgmtCmd Address to get mgmtCmd
   }}
 
 //=============================================================================================================================//
 
-//-------------------------------------------------------1. node 생성 Response-------------------------------------------------//
+//---------------------------------------------------1. node Creation Response--------------------------------------------------//
 }).then(function(result){
-  console.log(colors.green('1. node 생성 결과'));
+  console.log(colors.green('1. node Creation Response'));
   if(result.statusCode == 409){
-    console.log('이미 생성된 node resource ID 입니다.');
+    console.log('Already exists node.');
   }
-  config.nodeRI = JSON.parse(result.data).nod.ri;	//NODE의 Resource ID
-  console.log(colors.yellow('생성 node Resource ID : ') + config.nodeRI);
+  config.nodeRI = JSON.parse(result.data).nod.ri;	//Resource ID of node
+  console.log(colors.yellow('Created node Resource ID : ') + config.nodeRI);
 //=============================================================================================================================//    
 
-//-------------------------------------------------2. remoteCSE생성 요청(기기등록)---------------------------------------------//
+//---------------------------------------------------2. Request remoteCSE Creation--------------------------------------------------//
   return httpReq({ 
     options: {
 	  host: config.TPhost,
@@ -143,38 +133,38 @@ httpReq({
       path : '/'+config.AppEUI+'/'+config.version,												
       method: 'POST',
       headers : {	
-        'X-M2M-Origin': config.nodeID,									//해당 요청 메시지 송신자의 식별자
-        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),		//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
-        'X-M2M-NM': config.nodeID,										//해당 요청으로 생성하게 되는 자원의 이름 (NM == Name)
+        'X-M2M-Origin': config.nodeID,									// X-M2M-Origin header value shall be specified by the composer of the request(originator)
+        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),		// X-M2M-RI header shall be mapped to the Request Identifier parameter
+        'X-M2M-NM': config.nodeID,										// X-M2M-NM header shall be mapped to the Name parameter
         'passCode': config.passCode,										
-        'Accept': 'application/json',									//Response 받을 형태를 JSON으로 설정
-        'Content-Type': 'application/json;ty=16'						//JSON형태의 데이터 전송, ty는 생성하고자 하는 Resource Type의 식별자 (ty == 16은 remoteCSE를 의미함)
+        'Accept': 'application/json',									// Originator may use the Accept header to indicate which content-type is supported. 
+        'Content-Type': 'application/json;ty=16'						// containing Req message-body shall include the Content-type header set to one  (ty == 16 is remoteCSE)
       }
     },
     body : {csr : {
-    cst : 3, 										//등록하는 CSE의 타입 (IN-CSE = 1, MN-CSE = 2, ASN-CSE = 3) (cseType == cst)
-    csi : config.nodeID, 							//등록하는 CSE의 식별자 (CSE-ID == csi)
-    rr : true, 										//HTTP 프로토콜인데, 수신 받는 객체의 IP가 고정 아이피 IP인 경우에도 ‘True’로 설정하고, 나머지 경우는 ‘False’로 표현
-    nl : config.nodeRI								//논리적 정보를 포함하는 실제 물리적 LoRa 디바이스 Resource인 <node> Resource의 Resource 식별자
+    cst : 3, 										// CSE Type (IN-CSE = 1, MN-CSE = 2, ASN-CSE = 3) (cseType == cst)
+    csi : config.nodeID, 							// CSE-ID
+    rr : true, 										// Request Reachability, set true when poa has static IP
+    nl : config.nodeRI								// <node> Resource ID (nl == nodelink)
   }}
   });
 //=============================================================================================================================//
 
-//----------------------------------------2. remoteCSE생성 요청(기기등록) Response---------------------------------------------//	
+//---------------------------------------------------2. remoteCSE Creation Response--------------------------------------------------//
 }).then(function(result){
-  console.log(colors.green('2. remoteCSE 생성 결과'));
+  console.log(colors.green('2. remoteCSE Creation Response'));
   if(result.statusCode == 409){
-    console.log('이미 생성된 remoteCSE 입니다.');
+    console.log('Already exists remoteCSE');
   }
   if(result.headers.dkey){
-    console.log('다비이스 키 : '+ result.headers.dkey);							//remoteCSE 생성후 밝급되는 dKey
-    console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
+    console.log('dKey : '+ result.headers.dkey);								// Get dKey when remoteCSE created 
+    console.log('content-location: '+ result.headers['content-location']);		// Created Resource's URI
     config.dKey= result.headers.dkey;
   }
 //=============================================================================================================================//   
 }).then(function(result){
 
-//---------------------------------------------------3. container 생성 요청----------------------------------------------------//
+//---------------------------------------------------3. Request container Creation--------------------------------------------------//
   return httpReq({ 
     options: {
 	  host: config.TPhost,
@@ -182,12 +172,12 @@ httpReq({
       path : '/'+config.AppEUI+'/'+config.version+'/remoteCSE-'+ config.nodeID,				
       method: 'POST',
       headers : {
-        'X-M2M-Origin': config.nodeID,									//해당 요청 메시지 송신자의 식별자
-        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),		//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
-        'X-M2M-NM': config.containerName,								//해당 요청으로 생성하게 되는 자원의 이름 (NM == Name)
-        'dkey' : config.dKey,											//container 생성을 위한 device Key (remoteCSE를 생성할때 발급)
-        'Accept': 'application/json',									//Response 받을 형태를 JSON으로 설정
-        'Content-Type': 'application/json;ty=3'							//JSON형태의 데이터 전송, ty == 3은 생성하고자 하는 container 자원을 의미함
+        'X-M2M-Origin': config.nodeID,									// X-M2M-Origin header value shall be specified by the composer of the request(originator)
+        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),		// X-M2M-RI header shall be mapped to the Request Identifier parameter
+        'X-M2M-NM': config.containerName,								// X-M2M-NM header shall be mapped to the Name parameter
+        'dkey' : config.dKey,											// device Key (Get device Key when remoteCSE created)
+        'Accept': 'application/json',									// Originator may use the Accept header to indicate which content-type is supported. 
+        'Content-Type': 'application/json;ty=3'							// containing Req message-body shall include the Content-type header set to one  (ty == 3 is container)
       }
     },
     body : {cnt:{
@@ -197,16 +187,16 @@ httpReq({
   });
 //=============================================================================================================================//
 
-//--------------------------------------------3. container 생성 요청 Response--------------------------------------------------//
+//---------------------------------------------------3. container Creation Response--------------------------------------------------//
 }).then(function(result){
-  console.log(colors.green('3. container 생성 결과'));
+  console.log(colors.green('3. container Creation Response'));
   if(result.statusCode == 409){
-    console.log('이미 생성된 container 입니다.');
+    console.log('Already exists container');
   }
-  console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
+  console.log('content-location: '+ result.headers['content-location']);		// Created Resource's URI
 //=============================================================================================================================//
      
-//---------------------------4. 장치 제어를 위한 device mgmtCmd DevReset 리소스 생성 요청--------------------------------------//
+//---------------------------------------------------4. Request DevReset(mgmtCmd) Creation--------------------------------------------------//
   return httpReq({
     options: {
 	  host: config.TPhost,
@@ -214,33 +204,32 @@ httpReq({
       path : '/'+config.AppEUI+'/'+config.version,	
       method: 'POST',
       headers : {
-        'Accept': 'application/json',										//Response 받을 형태를 JSON으로 설정
-        dkey : config.dKey,													//mgmtCmd 생성을 위한 device Key (remoteCSE를 생성할때 발급)
-        'X-M2M-Origin': config.nodeID,										//해당 요청 메시지 송신자의 식별자
-        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),			//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
-        'X-M2M-NM': config.nodeID+'_'+config.DevReset,						//해당 요청으로 생성하게 되는 자원의 이름 - Device Reset (NM == Name)
-        'Content-Type': 'application/json;ty=12'							//JSON형태의 데이터 전송, ty == 12은 생성하고자 하는 mgmtCmd 자원을 의미함
+        'Accept': 'application/json',										// Originator may use the Accept header to indicate which content-type is supported. 
+        dkey : config.dKey,													// Get dKey when remoteCSE created
+        'X-M2M-Origin': config.nodeID,										// X-M2M-Origin header value shall be specified by the composer of the request(originator)
+        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),			// X-M2M-RI header shall be mapped to the Request Identifier parameter
+        'X-M2M-NM': config.nodeID+'_'+config.DevReset,						// X-M2M-NM header shall be mapped to the Name parameter - Device Reset
+        'Content-Type': 'application/json;ty=12'							// containing Req message-body shall include the Content-type header set to one (ty == 12 is mgmtCmd)
       }
     },
     body: {mgc:{
-    cmt : config.DevReset,   					//장치 제어 형태 (예, RepImmediate, DevReset, RepPerChange 등) / (cmt == cmdType)
-    exe : true,             					//장치 제어를 위한 Trigger Attribute (true/false) / (exe == execEnable))
-    ext : config.nodeRI     					//제어되는 장치의 식별자로 제어하고자 하는 장치의 <node> 자원 식별자를 명시함 (ext == exeTarget)
+    cmt : config.DevReset,   					// command Type
+    exe : true,             					// Trigger Attribute (true/false) (exe == execEnable)
+    ext : config.nodeRI     					// execute Target means node's Resource ID (ext == exeTarget)
   }}
   });
 //=============================================================================================================================//
 
-//---------------------4. 장치 제어를 위한 device mgmtCmd DevReset 리소스 생성 요청 Response-----------------------------------//
+//---------------------------------------------------4. DevReset(mgmtCmd Creation Response--------------------------------------------------//
 }).then(function(result){
-  console.log(colors.green('4. mgmtCmd 생성 결과'));	
+  console.log(colors.green('4. DevReset(mgmtCmd) Creation Response'));	
   if(result.statusCode == 409){
-    console.log('이미 생성된 mgmtCmd 입니다.');
+    console.log('Already exists DevReset');
   }
-  console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
+  console.log('content-location: '+ result.headers['content-location']);		// Created Resource's URI
 //=============================================================================================================================//
-
-
-//---------------------------4. 장치 제어를 위한 device mgmtCmd RepPerChange 리소스 생성 요청----------------------------------//
+ 
+//---------------------------------------------------4. Request extDevMgmt(mgmtCmd) Creation--------------------------------------------------//
   return httpReq({
     options: {
 	  host: config.TPhost,
@@ -248,101 +237,33 @@ httpReq({
       path : '/'+config.AppEUI+'/'+config.version,	
       method: 'POST',
       headers : {
-        'Accept': 'application/json',											//Response 받을 형태를 JSON으로 설정
-        dkey : config.dKey,														//mgmtCmd 생성을 위한 device Key (remoteCSE를 생성할때 발급)
-        'X-M2M-Origin': config.nodeID,											//해당 요청 메시지 송신자의 식별자
-        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),				//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
-        'X-M2M-NM': config.nodeID+'_'+config.RepPerChange,						//해당 요청으로 생성하게 되는 자원의 이름 - RepPerChange (NM == Name)
-        'Content-Type': 'application/json;ty=12'								//JSON형태의 데이터 전송, ty == 12은 생성하고자 하는 mgmtCmd 자원을 의미함
+        'Accept': 'application/json',											// Originator may use the Accept header to indicate which content-type is supported. 
+        dkey : config.dKey,														// Get dKey when remoteCSE created
+        'X-M2M-Origin': config.nodeID,											// X-M2M-Origin header value shall be specified by the composer of the request(originator)
+        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),				// X-M2M-RI header shall be mapped to the Request Identifier parameter
+        'X-M2M-NM': config.nodeID+'_'+config.extDevMgmt,						// X-M2M-NM header shall be mapped to the Name parameter - external Device mgmtCmd
+        'Content-Type': 'application/json;ty=12'								// containing Req message-body shall include the Content-type header set to one (ty == 12 is mgmtCmd)
       }
     },
     body: {mgc:{
-    cmt : config.RepPerChange,   				//장치 제어 형태 (예, RepImmediate, DevReset, RepPerChange 등) / (cmt == cmdType)
-    exe : true,             					//장치 제어를 위한 Trigger Attribute (true/false) / (exe == execEnable))
-    ext : config.nodeRI     					//제어되는 장치의 식별자로 제어하고자 하는 장치의 <node> 자원 식별자를 명시함 (ext == exeTarget)
-  }}
-  });
-//=============================================================================================================================//
-
-//---------------------4. 장치 제어를 위한 device mgmtCmd RepPerChange 리소스 생성 요청 Response-------------------------------//
-}).then(function(result){
-  console.log(colors.green('4. mgmtCmd 생성 결과'));	
-  if(result.statusCode == 409){
-    console.log('이미 생성된 mgmtCmd 입니다.');
-  }
-  console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
-//=============================================================================================================================//
-
-
-//---------------------------4. 장치 제어를 위한 device mgmtCmd RepImmediate 리소스 생성 요청----------------------------------//
-  return httpReq({
-    options: {
-	  host: config.TPhost,
-      port: config.TPport,
-      path : '/'+config.AppEUI+'/'+config.version,	
-      method: 'POST',
-      headers : {
-        'Accept': 'application/json',											//Response 받을 형태를 JSON으로 설정
-        dkey : config.dKey,														//mgmtCmd 생성을 위한 device Key (remoteCSE를 생성할때 발급)
-        'X-M2M-Origin': config.nodeID,											//해당 요청 메시지 송신자의 식별자
-        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),				//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
-        'X-M2M-NM': config.nodeID+'_'+config.RepImmediate,						//해당 요청으로 생성하게 되는 자원의 이름 - RepImmediate (NM == Name)
-        'Content-Type': 'application/json;ty=12'								//JSON형태의 데이터 전송, ty == 12은 생성하고자 하는 mgmtCmd 자원을 의미함
-      }
-    },
-    body: {mgc:{
-    cmt : config.RepImmediate,   				//장치 제어 형태 (예, RepImmediate, DevReset, RepPerChange 등) / (cmt == cmdType)
-    exe : true,             					//장치 제어를 위한 Trigger Attribute (true/false) / (exe == execEnable))
-    ext : config.nodeRI     					//제어되는 장치의 식별자로 제어하고자 하는 장치의 <node> 자원 식별자를 명시함 (ext == exeTarget)
+    cmt : config.extDevMgmt,   					// command Type
+    exe : true,             					// Trigger Attribute (true/false) (exe == execEnable)
+    ext : config.nodeRI     					// execute Target means node's Resource ID (ext == exeTarget)
   }}
   
  });
 //=============================================================================================================================//
 
-//---------------------4. 장치 제어를 위한 device mgmtCmd RepImmediate 리소스 생성 요청 Response-------------------------------//
+//---------------------------------------------------4.  extDevMgmt(mgmtCmd) Creation Response--------------------------------------------------//
   }).then(function(result){
-console.log(colors.green('4. mgmtCmd 생성 결과'));	
+console.log(colors.green('4. extDevMgmt(mgmtCmd) Creation Response'));	
   if(result.statusCode == 409){
-    console.log('이미 생성된 mgmtCmd 입니다.');
+    console.log('Already exists extDevMgmt');
   }
-  console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
-  
-  
-  //---------------------------4. 장치 제어를 위한 device mgmtCmd extDevMgmt 리소스 생성 요청----------------------------------//
-  return httpReq({
-    options: {
-	  host: config.TPhost,
-      port: config.TPport,
-      path : '/'+config.AppEUI+'/'+config.version,	
-      method: 'POST',
-      headers : {
-        'Accept': 'application/json',											//Response 받을 형태를 JSON으로 설정
-        dkey : config.dKey,														//mgmtCmd 생성을 위한 device Key (remoteCSE를 생성할때 발급)
-        'X-M2M-Origin': config.nodeID,											//해당 요청 메시지 송신자의 식별자
-        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),				//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
-        'X-M2M-NM': config.nodeID+'_'+config.extDevMgmt,						//해당 요청으로 생성하게 되는 자원의 이름 - extDevMgmt (NM == Name)
-        'Content-Type': 'application/json;ty=12'								//JSON형태의 데이터 전송, ty == 12은 생성하고자 하는 mgmtCmd 자원을 의미함
-      }
-    },
-    body: {mgc:{
-    cmt : config.extDevMgmt,   				//장치 제어 형태 (예, RepImmediate, DevReset, RepPerChange 등) / (cmt == cmdType)
-    exe : true,             					//장치 제어를 위한 Trigger Attribute (true/false) / (exe == execEnable))
-    ext : config.nodeRI     					//제어되는 장치의 식별자로 제어하고자 하는 장치의 <node> 자원 식별자를 명시함 (ext == exeTarget)
-  }}
-  
- });
-//=============================================================================================================================//
-
-//---------------------4. 장치 제어를 위한 device mgmtCmd extDevMgmt 리소스 생성 요청 Response-------------------------------//
-  }).then(function(result){
-console.log(colors.green('4. mgmtCmd 생성 결과'));	
-  if(result.statusCode == 409){
-    console.log('이미 생성된 mgmtCmd 입니다.');
-  }
-  console.log('content-location: '+ result.headers['content-location']);		//생성된 자원의 URI
+  console.log('content-location: '+ result.headers['content-location']);		// Created Resource's URI
   
   if(result.headers){
-    console.log(colors.green('4. content Instance 주기적 생성 시작'));
+    console.log(colors.yellow('5. Request ContentInstance Creation for Sensor Data'));
 	IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL);
   }
 
@@ -353,7 +274,7 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
   console.log(err);
 });
 
-//------------------------------5. 센서 데이터 전송을 위한 ContentInstance 리소스 생성 요청------------------------------------//	
+//---------------------------------------------------5. Request contentInstance Creation--------------------------------------------------//
  function IntervalProcess(){
     httpReq({ 
       options : {
@@ -362,25 +283,25 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
         path : '/'+config.AppEUI+'/'+config.version+'/remoteCSE-'+ config.nodeID+ '/container-'+config.containerName,		
         method: 'POST',
         headers : {
-          'Accept': 'application/json',											//Response 받을 형태를 JSON으로 설정
-          'X-M2M-Origin': config.nodeID,										//해당 요청 메시지 송신자의 식별자
-		  'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),				//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
-          'Content-Type': 'application/json;ty=4',								//JSON형태의 데이터 전송, ty == 4은 생성하고자 하는 contentInstance 자원을 의미함
-		  dkey : config.dKey,													//contentInstance 생성을 위한 device Key (remoteCSE를 생성할때 발급)
+          'Accept': 'application/json',											// Originator may use the Accept header to indicate which content-type is supported. 
+          'X-M2M-Origin': config.nodeID,										// X-M2M-Origin header value shall be specified by the composer of the request(originator)
+		  'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),				// X-M2M-RI header shall be mapped to the Request Identifier parameter
+          'Content-Type': 'application/json;ty=4',								// containing Req message-body shall include the Content-type header set to one (ty == 4 is contentInstance)
+		  dkey : config.dKey,													// Get dKey when remoteCSE created
         
         }
       },
       body : {cin:{
-		cnf : 'text', 							//업로드 하는 데이터 타입의 정보 (cnf = contentInfo)
-		con : config.contents()					//업로드 하는 데이터 (con == content)
+		cnf : 'text', 							// uploaded content's type info (cnf = contentInfo)
+		con : config.contents()					// uploaded contents (con == content)
 		}}
 //=============================================================================================================================//
 
-//-------------------------5. 센서 데이터 전송을 위한 ContentInstance 리소스 생성 요청 Response--------------------------------//	
+//---------------------------------------------------5. contentInstance Creation Response--------------------------------------------------//
     }).then(function(result){
 		
       var data = JSON.parse(result.data);
-      console.log('content : ' + data.cin.con + ', resourceID : '+data.cin.ri); //업로드 된 자원의 데이터 정보
+      console.log('content : ' + data.cin.con + ', resourceID : '+data.cin.ri); //uploaded content's info data (con, ri)
     }).catch(function(err){
 		console.log(colors.red('#####################################'));
       console.log(err);
@@ -389,7 +310,7 @@ console.log(colors.green('4. mgmtCmd 생성 결과'));
     }
 //=============================================================================================================================//
 
-//----------------------------------------- 6. mgmtCmd 수행 결과 전달 updateExecInstance---------------------------------------//
+//---------------------------------------------------6. updateExecInstance Request--------------------------------------------------//
 function updateExecInstance(ei, mgmtCmdprefix){
   httpReq({
     options: {
@@ -398,26 +319,26 @@ function updateExecInstance(ei, mgmtCmdprefix){
       path : '/'+config.AppEUI+'/'+config.version+'/mgmtCmd-'+mgmtCmdprefix+'/execInstance-'+ei,
       method: 'PUT',
       headers : {
-        'Accept': 'application/json',										//Response 받을 형태를 JSON으로 설정
-        dKey : config.dKey,													//execInstance 수행을 위한 device Key (remoteCSE를 생성할때 발급)
-        'X-M2M-Origin': config.nodeID,										//해당 요청 메시지 송신자의 식별자
-        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),			//해당 요청 메시지에 대한 고유 식별자 (RI == Request ID) / 해당 식별자는 CSE가 자동 생성
-        'Content-Type': 'application/json'									//JSON형태의 데이터 전송, ty == 4은 생성하고자 하는 contentInstance 자원을 의미함
+        'Accept': 'application/json',										// Originator may use the Accept header to indicate which content-type is supported. 
+        dKey : config.dKey,													// Get dKey when remoteCSE created
+        'X-M2M-Origin': config.nodeID,										// X-M2M-Origin header value shall be specified by the composer of the request(originator)
+        'X-M2M-RI': config.nodeID+'_'+randomInt(100000, 999999),			// X-M2M-RI header shall be mapped to the Request Identifier parameter
+        'Content-Type': 'application/json'									// containing Req message-body shall include the Content-type header set to one  ty == 4은 생성하고자 하는 contentInstance 자원을 의미함
       }
     },
     body : {
 		exin : {
-			exs : 3,
+			exs : 3,														// execStatus after update mgmtCmd
 			exr : 0
 		}
 	}
 //=============================================================================================================================//
 
-//----------------------------------------- 6. mgmtCmd 수행 결과 전달 updateExecInstance Respon--------------------------------//
+//----------------------------------------- 6. updateExecInstance Respon--------------------------------//
   }).then(function(result){
     var data = JSON.parse(result.data);
-    console.log('처리한 resouceId : ' + data.ri);
-    console.log('처리한 결과 execStatus : ' + data.exs);
+    console.log('resouceId : ' + data.ri);
+    console.log('execStatus : ' + data.exs);
     console.log(colors.red('#####################################'));
   }).catch(function(err){
     console.log(err);

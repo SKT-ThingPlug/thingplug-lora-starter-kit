@@ -1,5 +1,5 @@
 /*
- ThingPlug StarterKit for LoRa version 0.2
+ ThingPlug StarterKit for LoRa version 0.1
  
  Copyright © 2016 IoT Tech. Lab of SK Telecom All rights reserved.
 
@@ -73,8 +73,8 @@ client.on('close', function(){
 });
 
 client.on('error', function(error){
-	console.log(error);
-	self.emit('error', error);
+console.log(error);
+self.emit('error', error);
 });
 
 client.on('message', function(topic, message){
@@ -106,19 +106,19 @@ client.on('message', function(topic, message){
 				contentInstanceCreationReq ();	//5. Request ContentInstance Creation for Sensor Data	
 			}	
 			else if("ContentInstance"==isRunning){
-				try{
-					if(xmlObj['m2m:req']){
-						processCMD(xmlObj);				//mgmtCmd PUSH Message Subscribe
-						updateExecInstanceReq(xmlObj);	//6. Update mgmtCmd Execute Result - updateExecInstance
+					try{
+						if(xmlObj['m2m:req']){
+							processCMD(xmlObj);				//mgmtCmd PUSH Message Subscribe
+							updateExecInstanceReq(xmlObj);	//6. Update mgmtCmd Execute Result - updateExecInstance
+						}
+						else if(xmlObj['m2m:rsp']['pc'][0]['cin'][0]['ty'][0] == 4){
+							contentInstanceCreationRes (xmlObj);	//5. ContentInstance Creation for Sensor Data Response
+						}
 					}
-					else if(xmlObj['m2m:rsp']['pc'][0]['cin'][0]['ty'][0] == 4){
-						contentInstanceCreationRes (xmlObj);	//5. ContentInstance Creation for Sensor Data Response
+					catch(e){
+						console.error(colors.yellow(msgs));
+						console.error(colors.yellow(e));
 					}
-				}
-				catch(e){
-					console.error(colors.yellow(msgs));
-					console.error(colors.yellow(e));
-				}
 			}
 			else if("updateExecInstance"==isRunning){
 				isRunning = "ContentInstance";
@@ -130,15 +130,16 @@ client.on('message', function(topic, message){
 
 //----------------------------------Request ContentInstance Creation for virtual Sensor Data---------------------------------------------//  
  function IntervalProcess(){
-	  var op = "<op>1</op>";
-	  var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"/container-"+config.containerName+"</to>";
-	  var fr = "<fr>"+config.nodeID+"</fr>";
-	  var ty = "<ty>4</ty>";
-	  var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-	  var dKey = "<dKey>"+config.dKey+"</dKey>";
-	  var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	  var op = "<op>1</op>";																						// opearation Method, 1 is create
+	  var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"/container-"+config.containerName+"</to>";	// destination URI
+	  var fr = "<fr>"+config.nodeID+"</fr>";																		// from header value shall be specified by the composer of the request(originator)
+	  var ty = "<ty>4</ty>";																						// contents type  (ty 4 is contentsInstance)
+	  var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";											// ri header shall be mapped to the Request Identifier parameter
+	  var dKey = "<dKey>"+config.dKey+"</dKey>";																	// Get dKey when remoteCSE created
+	  var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";														// containing Req message-body shall include the Content-type header set to one
 	  var reqBody = "<pc><cin><cnf>text</cnf><con>"+config.contents()+"</con></cin></pc></m2m:req>";
-	 
+																													// cnf : uploaded content's type info (cnf = contentInfo)
+																													// con : uploaded contents (con == content)
 	  var createContentInstance = reqHeader+op+to+fr+ty+ri+cty+dKey+reqBody;
 	  client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContentInstance, {qos : 1}, function(){
 					
@@ -158,16 +159,7 @@ function processCMD(xmlObj){
 	var req = JSON.parse(xmlObj['m2m:req']['pc'][0]['exin'][0]['exra'][0]);
 	var cmt = xmlObj['m2m:req']['pc'][0]['exin'][0]['cmt'][0];
 	
-	if(cmt=='RepImmediate'){
-		config.BASE_TEMP = 10;
-	}
-	else if(cmt=='RepPerChange'){
-		config.UPDATE_CONTENT_INTERVAL = req.cmd*1000;
-		console.log('UPDATE_CONTENT_INTERVAL: ' + config.UPDATE_CONTENT_INTERVAL);
-		clearInterval(IntervalFunction);
-		IntervalFunction = setInterval(IntervalProcess, config.UPDATE_CONTENT_INTERVAL);
-	}
-	else if(cmt=='DevReset'){
+	if(cmt=='DevReset'){
 		config.BASE_TEMP = 30;		
 	}
 	else if(cmt=='extDevMgmt'){
@@ -182,15 +174,16 @@ function processCMD(xmlObj){
 
 //---------------------------------------------------1. Request node Creation--------------------------------------------------//
 function nodeCreationReq (){
-		var op = "<op>1</op>";
-		var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-		var fr = "<fr>"+config.nodeID+"</fr>";
-		var ty = "<ty>14</ty>";
-		var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-		var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-		var nm = "<nm>"+config.nodeID+"</nm>";
+		var op = "<op>1</op>";																						// opearation Method, 1 is create
+		var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";												// destination URI
+		var fr = "<fr>"+config.nodeID+"</fr>";																		// from header value shall be specified by the composer of the request(originator)
+		var ty = "<ty>14</ty>";																						// contents type  (ty 14 is node)
+		var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";										// ri header shall be mapped to the Request Identifier parameter
+		var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";														// containing Req message-body shall include the Content-type header set to one
+		var nm = "<nm>"+config.nodeID+"</nm>";																		// nm header shall be mapped to the Name parameter
 		var reqBody = "<pc><nod><ni>"+config.nodeID+"</ni><mga>MQTT|"+config.nodeID+"</mga></nod></pc></m2m:req>";
-		
+																													// ni : LTID
+																													// mga : mgmtCmd Address to get mgmtCmd
 		var createNode = reqHeader+op+to+fr+ty+ri+cty+nm+reqBody;
 		client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createNode, {qos : 1}, function(){
 			console.log(colors.yellow('1. Request node Creation'));
@@ -206,7 +199,7 @@ function nodeCreationRes (xmlObj){
 	if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
 		console.log(colors.white('Already exists node'));
 	}
-	console.log("Created node Resource ID : "+xmlObj['m2m:rsp']['pc'][0]['nod'][0]['ri'][0]);//
+	console.log("Created node Resource ID : "+xmlObj['m2m:rsp']['pc'][0]['nod'][0]['ri'][0]);						// Resource ID of node
 	config.nodeRI = xmlObj['m2m:rsp']['pc'][0]['nod'][0]['ri'][0];
 
 	console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/' + isRunning + '-' + config.nodeID);
@@ -215,16 +208,20 @@ function nodeCreationRes (xmlObj){
 
 //---------------------------------------------------2. Request remoteCSE Creation--------------------------------------------------//
 function remoteCSECreationReq (){
-	var op = "<op>1</op>";
-	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-	var fr = "<fr>"+config.nodeID+"</fr>";
-	var ty = "<ty>16</ty>";
-	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-	var passCode = "<passCode>"+config.passCode+"</passCode>";
-	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-	var nm = "<nm>"+config.nodeID+"</nm>";
-	var reqBody = "<pc><csr><cst>3</cst><csi>"+config.nodeID+"</csi><rr>true</rr><nl>"+config.nodeRI+"</nl></csr></pc></m2m:req>";
-	
+	var op = "<op>1</op>";																						// opearation Method, 1 is create
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";												// destination URI
+	var fr = "<fr>"+config.nodeID+"</fr>";																		// from header value shall be specified by the composer of the request(originator)
+	var ty = "<ty>16</ty>";																						// contents type (ty 16 is remoteCSE)
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";										// ri header shall be mapped to the Request Identifier parameter
+	var passCode = "<passCode>"+config.passCode+"</passCode>";													// password to use for reqistering device at portal
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";														// containing Req message-body shall include the Content-type header set to one (ty == 14 is node)
+	var nm = "<nm>"+config.nodeID+"</nm>";																		// nm header shall be mapped to the Name parameter
+	var reqBody = "<pc><csr><cst>3</cst><csi>"+config.nodeID+"</csi><rr>false</rr><nl>"+config.nodeRI+"</nl></csr></pc></m2m:req>";
+																												// cst : CSE Type (IN-CSE = 1, MN-CSE = 2, ASN-CSE = 3) (cseType == cst)
+																												// csi : CSE-ID
+																												// rr :  Request Reachability, set true when poa has static IP
+																												// nl : <node> Resource ID (nl == nodelink)
+																													
 	var createRemoteCSE = reqHeader+op+to+fr+ty+ri+passCode+cty+nm+reqBody;
 	client.publish("/oneM2M/req/"+ config.nodeID + "/"+config.AppEUI, createRemoteCSE, {qos : 1}, function(){
 		console.log(' ');
@@ -240,7 +237,7 @@ function remoteCSECreationRes (xmlObj){
 	if(xmlObj['m2m:rsp']['rsc'][0] == 4105){
 		console.log(colors.white('Already exists remoteCSE'));
 	}
-	console.log("dKey : "+xmlObj['m2m:rsp']['dKey'][0]);//
+	console.log("dKey : "+xmlObj['m2m:rsp']['dKey'][0]);//														// Get dKey when remoteCSE created 
 	config.dKey = xmlObj['m2m:rsp']['dKey'][0];
 	
 	console.log('content-location: '+ "/"+config.AppEUI+ "/"+config.version + '/' + isRunning + '-' + config.nodeID);
@@ -249,15 +246,15 @@ function remoteCSECreationRes (xmlObj){
 
 //---------------------------------------------------3. Request container Creation--------------------------------------------------//
 function containerCreationReq (){
-	var op = "<op>1</op>";
-	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"</to>";
-	var fr = "<fr>"+config.nodeID+"</fr>";
-	var ty = "<ty>3</ty>";
-	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-	var nm = "<nm>"+config.containerName+"</nm>";
-	var dKey = "<dKey>"+config.dKey+"</dKey>";
-	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
-	var reqBody = "<pc><cnt><lbl>con</lbl></cnt></pc></m2m:req>";
+	var op = "<op>1</op>";																						// opearation Method, 1 is create
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/remoteCSE-"+config.nodeID+"</to>";					// destination URI
+	var fr = "<fr>"+config.nodeID+"</fr>";																		// from header value shall be specified by the composer of the request(originator)
+	var ty = "<ty>3</ty>";																						// contents type (ty 3 is container)
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";										// ri header shall be mapped to the Request Identifier parameter
+	var nm = "<nm>"+config.containerName+"</nm>";																// nm header shall be mapped to the Name parameter			
+	var dKey = "<dKey>"+config.dKey+"</dKey>";																	// Get dKey when remoteCSE created 
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";														// containing Req message-body shall include the Content-type header set to one (ty == 14 is node)
+	var reqBody = "<pc><cnt><lbl>con</lbl></cnt></pc></m2m:req>";										
 	
 	var createContainer = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContainer, {qos : 1}, function(){
@@ -280,16 +277,18 @@ function containerCreationRes (xmlObj){
 
 //---------------------------------------------------4. Request DevReset(mgmtCmd) Creation--------------------------------------------------//
 function DevResetCreationReq (){
-	var op = "<op>1</op>";
-	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-	var fr = "<fr>"+config.nodeID+"</fr>";
-	var ty = "<ty>12</ty>";
-	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-	var nm = "<nm>"+config.nodeID+"_"+config.DevReset+"</nm>";
-	var dKey = "<dKey>"+config.dKey+"</dKey>";
-	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	var op = "<op>1</op>";																						// opearation Method, 1 is create
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";												// destination URI
+	var fr = "<fr>"+config.nodeID+"</fr>";																		// from header value shall be specified by the composer of the request(originator)
+	var ty = "<ty>12</ty>";																						// contents type (ty 12 is mgmtCmd)
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";										// ri header shall be mapped to the Request Identifier parameter
+	var nm = "<nm>"+config.nodeID+"_"+config.DevReset+"</nm>";													// nm header shall be mapped to the Name parameter		
+	var dKey = "<dKey>"+config.dKey+"</dKey>";																	// Get dKey when remoteCSE created 
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";														// containing Req message-body shall include the Content-type header set to one (ty == 14 is node)
 	var reqBody = "<pc><mgc><cmt>"+config.DevReset+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
-	
+																												// cmt : command Type
+																												// exe : Trigger Attribute (true/false) (exe == execEnable)
+																												// ext : execute Target means node's Resource ID (ext == exeTarget)
 	var createDevReset = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createDevReset, {qos : 1}, function(){
 		console.log(' ');
@@ -311,16 +310,18 @@ function DevResetCreationRes (xmlObj){
 
 //---------------------------------------------------4. Request extDevMgmt(mgmtCmd) Creation--------------------------------------------------//
 function extDevMgmtCreationReq (){
-	var op = "<op>1</op>";
-	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";
-	var fr = "<fr>"+config.nodeID+"</fr>";
-	var ty = "<ty>12</ty>";
-	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-	var nm = "<nm>"+config.nodeID+"_"+config.extDevMgmt+"</nm>";
-	var dKey = "<dKey>"+config.dKey+"</dKey>";
-	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	var op = "<op>1</op>";																						// opearation Method, 1 is create
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"</to>";												// destination URI
+	var fr = "<fr>"+config.nodeID+"</fr>";																		// from header value shall be specified by the composer of the request(originator)
+	var ty = "<ty>12</ty>";																						// contents type (ty 12 is mgmtCmd)
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";										// ri header shall be mapped to the Request Identifier parameter
+	var nm = "<nm>"+config.nodeID+"_"+config.extDevMgmt+"</nm>";												// nm header shall be mapped to the Name parameter		
+	var dKey = "<dKey>"+config.dKey+"</dKey>";																	// Get dKey when remoteCSE created 
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";														// containing Req message-body shall include the Content-type header set to one (ty == 14 is node)
 	var reqBody = "<pc><mgc><cmt>"+config.extDevMgmt+"</cmt><exe>false</exe><ext>"+config.nodeRI+"</ext></mgc></pc></m2m:req>";
-	
+																												// cmt : command Type
+																												// exe : Trigger Attribute (true/false) (exe == execEnable)
+																												// ext : execute Target means node's Resource ID (ext == exeTarget)
 	var createRepPerChange = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
 	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepPerChange, {qos : 1}, function(){
 		console.log(' ');
@@ -359,15 +360,15 @@ function contentInstanceCreationRes (xmlObj){
 function updateExecInstanceReq (xmlObj){
 	var exin_ri = xmlObj['m2m:req']['pc'][0]['exin'][0]['ri'][0];
 	
-	var op = "<op>3</op>";
-	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/mgmtCmd-"+config.nodeID+"_"+cmt+"/execInstance-"+exin_ri+"</to>";
-	var fr = "<fr>"+config.nodeID+"</fr>";
-	var ty = "<ty>12</ty>";
-	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";
-	var dKey = "<dKey>"+config.dKey+"</dKey>";
-	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";
+	var op = "<op>3</op>";																						// opearation Method, 3 is update
+	var to = "<to>"+"/"+config.AppEUI+"/"+config.version+"/mgmtCmd-"+config.nodeID+"_"+cmt+"/execInstance-"+exin_ri+"</to>";	// destination URI
+	var fr = "<fr>"+config.nodeID+"</fr>";																		// from header value shall be specified by the composer of the request(originator)
+	var ty = "<ty>12</ty>";																						// contents type (ty 12 is mgmtCmd)
+	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";										// ri header shall be mapped to the Request Identifier parameter
+	var dKey = "<dKey>"+config.dKey+"</dKey>";																	// Get dKey when remoteCSE created
+	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";														// containing Req message-body shall include the Content-type header set to one (ty == 14 is node)
 	var reqBody = "<pc><exin><exs>3</exs><exr>0</exr></exin></pc></m2m:req>";
-
+																												// exs : execStatus after update mgmtCmd
 	var updateExecInstance = reqHeader+op+to+fr+ri+dKey+cty+reqBody;
 	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, updateExecInstance, {qos : 1}, function(){
 		console.log(colors.red('#####################################'));

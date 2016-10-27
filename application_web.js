@@ -39,14 +39,12 @@ app.use('/dashboard', express.static(path.join(__dirname,'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//------------------------------------------------------config 정보 load-------------------------------------------------------//
+//------------------------------------------------------config Infomation load-------------------------------------------------------//
 
 for (var j =0; j < numOfDevice; j++) {
 	config.push(require('./config_'+(j+1).toString()));
 	config_h.push('/config_'+(j+1).toString());
 }
-
-//지도에서 클릭 후 node 관련 config return
 app.get(config_h, function(req,res) {
   configIndex = parseInt(req.originalUrl[8])-1;
   res.send(config[configIndex]);
@@ -58,7 +56,7 @@ app.get(config_h, function(req,res) {
 
 
 
-//--------------------------------------------Request ID를 생성하기 위한 RandomInt Function------------------------------------//
+//-----------------------------------------------randomInt Function for Create Request ID--------------------------------------//
 function randomInt (low, high) {
 	return Math.floor(Math.random() * (high - low + 1) + low);
 }
@@ -66,7 +64,7 @@ function randomInt (low, high) {
 
 
 
-//----------------------------------------- 1. Container에 저장된 최신 값 조회(Retrieve)---------------------------------------//
+//----------------------------------------- 1. GET latest Contents (Retrieve)---------------------------------------//
 
 app.get('/data/:container', function(req,res) {
   var container = req.params.container;
@@ -79,7 +77,7 @@ app.get('/data/:container', function(req,res) {
 });
 //=============================================================================================================================//
 
-//---------------------------------------------------- 2. mgmCmd 요청----------------------------------------------------------//
+//---------------------------------------------------- 2. Request mgmtCmd----------------------------------------------------------//
 
 app.post('/control', function(req,res) {
   var cmd = JSON.stringify(req.body);
@@ -93,7 +91,7 @@ app.post('/control', function(req,res) {
 });
 //=============================================================================================================================//
 
-//-----------------------------------------------------Event 발생시 알림-------------------------------------------------------//
+//-----------------------------------------------------Event Trigger-------------------------------------------------------//
 
 app.post('/email', function(req,res) {
 	var cmd =req.body;
@@ -116,7 +114,7 @@ server.listen(app.get('port'), function(){
 
 var httpReq = require('./promise-http').request;
 
-//-------------------------------- 1. Container에 저장된 최신 값 조회(Retrieve)----------------------------------------//
+//-------------------------------- 1. GET latest Contents (Retrieve)----------------------------------------//
 function getLatestContainer(cb){
 httpReq({ 
   options: {
@@ -125,11 +123,10 @@ httpReq({
     path : '/'+config[configIndex].AppEUI+'/'+config[configIndex].version+'/remoteCSE-'+ config[configIndex].nodeID+ '/container-'+config[configIndex].containerName+'/latest',
     method: 'GET',
     headers : {
-      Accept: 'application/json',
-      locale: 'ko',
-      uKey : config[configIndex].uKey,
-      'X-M2M-RI': config[configIndex].nodeID+'_'+randomInt(100000, 999999),
-      'X-M2M-Origin': config[configIndex].nodeID
+      Accept: 'application/json',												// Originator may use the Accept header to indicate which content-type is supported. 
+      uKey : config[configIndex].uKey,											// user Token Key from ThingPlug Portal
+      'X-M2M-RI': config[configIndex].nodeID+'_'+randomInt(100000, 999999),		// X-M2M-RI header shall be mapped to the Request Identifier parameter
+      'X-M2M-Origin': config[configIndex].nodeID								// X-M2M-Origin header value shall be specified by the composer of the request(originator)
     }
   }
 }).then(function(result){
@@ -144,11 +141,8 @@ httpReq({
 
 //=============================================================================================================================//
 
-//---------------------------------------------------- 2. mgmCmd 요청----------------------------------------------------------//
-
-
+//---------------------------------------------------- 2. Request mgmtCmd(PUSH MESSAGE)----------------------------------------------------------//
 function reqMgmtCmd(mgmtCmdPrefix, cmd, cb){
-// 2. mgmCmd 요청
 	httpReq({ 
     options: {
       host : config[configIndex].TPhost,
@@ -156,20 +150,20 @@ function reqMgmtCmd(mgmtCmdPrefix, cmd, cb){
       path : '/'+config[configIndex].AppEUI+'/'+config[configIndex].version+'/mgmtCmd-'+config[configIndex].nodeID + '_' + mgmtCmdPrefix,
       method: 'PUT',
       headers : {
-        Accept: 'application/json',
-        uKey : config[configIndex].uKey,
-        'X-M2M-Origin': config[configIndex].nodeID,
-        'X-M2M-RI': config[configIndex].nodeID+'_'+randomInt(100000, 999999),
+        Accept: 'application/json',												// Originator may use the Accept header to indicate which content-type is supported.
+        uKey : config[configIndex].uKey,										// user Token Key from ThingPlug Portal
+        'X-M2M-Origin': config[configIndex].nodeID,								// X-M2M-Origin header value shall be specified by the composer of the request(originator)
+        'X-M2M-RI': config[configIndex].nodeID+'_'+randomInt(100000, 999999),	// X-M2M-RI header shall be mapped to the Request Identifier parameter
 		'Content-Type': 'application/json;ty=8'
 	  }
       },
 		body : {mgc:{
-    exra : cmd,			//제어 요청(일반적으로 원격 장치를 RPC호출)을 위한 Argument 정의 (exra == execReqArgs)
-    exe : true,						//제어 요청 Trigger 속성으로 해당 속성은 (True/False로 표현) (exe == execEnabler)
-	cmt : mgmtCmdPrefix
+    exra : cmd,				// (exra == execReqArgs)
+    exe : true,				// Trigger Attribute (true/false) (exe == execEnable)
+	cmt : mgmtCmdPrefix		// command Type
   }}
 }).then(function(result){
-  console.log(colors.green('mgmtCmd 제어 요청'));
+  console.log(colors.green('Request mgmtCmd'));
   if(result.data){
 		var data = JSON.parse(result.data);
 		return cb(null, data);

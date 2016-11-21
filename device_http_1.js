@@ -109,8 +109,8 @@ httpReq({
     }
   },
   body : {nod : 
-  {ni : config.nodeID,											// LTID
-   mga :  'HTTP|' + config.responseAddress						// mgmtCmd Address to get mgmtCmd
+  {ni : config.nodeID,															// LTID
+   mga :  'HTTP|' + config.responseAddress + ':' + config.responsePORT			// mgmtCmd Address to get mgmtCmd
   }}
 
 //=============================================================================================================================//

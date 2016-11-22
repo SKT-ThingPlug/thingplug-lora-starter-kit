@@ -180,7 +180,7 @@ function nodeCreationReq (){
 		var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";										// ri header shall be mapped to the Request Identifier parameter
 		var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";														// containing Req message-body shall include the Content-type header set to one
 		var nm = "<nm>"+config.nodeID+"</nm>";																		// nm header shall be mapped to the Name parameter
-		var reqBody = "<pc><nod><ni>"+config.nodeID+"</ni><mga>MQTT|"+config.nodeID+"</mga></nod></pc></m2m:req>";
+		var reqBody = "<pc><nod><ni>"+config.nodeID+"</ni><mga>MQTT|"+config.mqttClientId()+"</mga></nod></pc></m2m:req>";
 																													// ni : LTID
 																													// mga : mgmtCmd Address to get mgmtCmd
 		var createNode = reqHeader+op+to+fr+ty+ri+cty+nm+reqBody;

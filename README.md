@@ -124,8 +124,6 @@ module.exports = {
 
   containerName:'LoRa',                         	// starter kit에서 생성하고 사용할 container 이름 (임의지정)
   DevReset : 'DevReset',                        	// starter kit에서 생성하고 사용할 제어 명령 DevReset
-  RepPerChange : 'RepPerChange',                	// starter kit에서 생성하고 사용할 제어 명령 RepPerChange
-  RepImmediate : 'RepImmediate',                	// starter kit에서 생성하고 사용할 제어 명령 RepImmediate
   extDevMgmt : 'extDevMgmt',						// starter kit에서 생성하고 사용할 제어 명령 extDevMgmt
   
   UPDATE_CONTENT_INTERVAL : 1000,					//contentInstance 생성주기
@@ -296,9 +294,7 @@ module.exports = {
 | 1. Content Instance 조회     | 가장 최근의 content Instance를 조회합니다.                 | HTTP GET       |
 | 2. mgmtCmd 요청              | Device로 보낼 제어 명령을 ThingPlug에게 보냅니다.          | HTTP POST      |
 | 2-1. DevReset                | LoRa 디바이스 리셋을 위한 mgmtCmd                          | HTTP PUT       |
-| 2-2. RepPerChange            | LoRa 디바이스의 Uplink(주기 보고) 주기 변경을 위한 mgmtCmd | HTTP PUT       |
-| 2-3. RepImmediate            | LoRa 디바이스의 Uplink(주기 보고) 즉시 보고를 위한 mgmtCmd | HTTP PUT       |
-| 2-4. extDevMgmt              | 사용자 지정 mgmtCmd (설정 방법은 API 문서 참조)            | HTTP PUT       |
+| 2-2. extDevMgmt              | 사용자 지정 mgmtCmd (설정 방법은 API 문서 참조)            | HTTP PUT       |
 | 3. mgmtCmd execInstance 조회 | Device로 보낸 제어 명령의 상태를 조회 합니다.              | HTTP GET       |
 | 4. Sensor Display            | Sensor값(현재 온도, 습도, 조도) 그래프형태로 표시          | d3 API         |
 | 5. Google 지도 API           | LoRa Device 위치 표시                                      | Google API     |
@@ -358,12 +354,6 @@ client.on('message', function(topic, message){
 		/////////condition branch device.js//////////////////
 		if(cmt=='RepImmediate'){//즉시보고
 			...
-		}
-		else if(cmt=='RepPerChange'){//주기변경
-			...
-		}
-		else if(cmt=='DevReset'){//디바이스 초기화
-			...		
 		}
 		else if(cmt=='extDevMgmt'){//사용자 지정 명령어
 			...		

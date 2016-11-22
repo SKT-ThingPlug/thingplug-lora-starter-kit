@@ -46,7 +46,6 @@ function randomInt (low, high) {
 }
 //=============================================================================================================================//
 
-  
 var self = this;
 
 var isRunning = 1;
@@ -55,14 +54,14 @@ var reqHeader = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmln
 var client = mqtt.connect('mqtt://'+config.TPhost, {
 	username:config.userID,			//user ID to connect with MQTT broker
 	password:config.uKey,			//password to connect with MQTT broker(uKey of portal)
-	clientId:config.mqttClientId,	//Client ID to connect with MQTT broker
+	clientId:config.mqttClientId(),	//Client ID to connect with MQTT broker
 	clean:true						//clean session
 });
 client.on('connect', function () {
 	console.log('### mqtt connected ###');
 //---------------------------------------------------Subscribe Declaration-----------------------------------------------------//
-	client.subscribe("/oneM2M/req/+/"+ config.nodeID);		
-	client.subscribe("/oneM2M/resp/"+ config.nodeID +"/+");
+	client.subscribe("/oneM2M/req/+/"+ config.mqttClientId());		
+	client.subscribe("/oneM2M/resp/"+ config.mqttClientId() +"/+");
 //=============================================================================================================================//
 
 	nodeCreationReq ();							//1. Request node Creation
@@ -73,8 +72,8 @@ client.on('close', function(){
 });
 
 client.on('error', function(error){
-console.log(error);
-self.emit('error', error);
+	console.log(colors.red(error));
+	self.emit('error', error);
 });
 
 client.on('message', function(topic, message){
@@ -141,7 +140,7 @@ client.on('message', function(topic, message){
 																													// cnf : uploaded content's type info (cnf = contentInfo)
 																													// con : uploaded contents (con == content)
 	  var createContentInstance = reqHeader+op+to+fr+ty+ri+cty+dKey+reqBody;
-	  client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContentInstance, {qos : 1}, function(){
+	  client.publish("/oneM2M/req/"+ config.mqttClientId() +"/"+config.AppEUI, createContentInstance, {qos : 1}, function(){
 					
 	  });
     }
@@ -185,7 +184,7 @@ function nodeCreationReq (){
 																													// ni : LTID
 																													// mga : mgmtCmd Address to get mgmtCmd
 		var createNode = reqHeader+op+to+fr+ty+ri+cty+nm+reqBody;
-		client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createNode, {qos : 1}, function(){
+		client.publish("/oneM2M/req/"+ config.mqttClientId() +"/"+config.AppEUI, createNode, {qos : 1}, function(){
 			console.log(colors.yellow('1. Request node Creation'));
 			isRunning = "node";
 					
@@ -215,7 +214,7 @@ function remoteCSECreationReq (){
 	var ri = "<ri>"+config.nodeID+'_'+randomInt(100000, 999999)+"</ri>";										// ri header shall be mapped to the Request Identifier parameter
 	var passCode = "<passCode>"+config.passCode+"</passCode>";													// password to use for reqistering device at portal
 	var cty = "<cty>application/vnd.onem2m-prsp+xml</cty>";														// containing Req message-body shall include the Content-type header set to one (ty == 14 is node)
-	var nm = "<nm>"+config.nodeID+"</nm>";																		// nm header shall be mapped to the Name parameter
+	var nm = "<nm>"+config.nodeID+"</nm>";																		// nm header shall be mapped to the Name parameter																		// nm header shall be mapped to the Name parameter
 	var reqBody = "<pc><csr><cst>3</cst><csi>"+config.nodeID+"</csi><rr>false</rr><nl>"+config.nodeRI+"</nl></csr></pc></m2m:req>";
 																												// cst : CSE Type (IN-CSE = 1, MN-CSE = 2, ASN-CSE = 3) (cseType == cst)
 																												// csi : CSE-ID
@@ -223,7 +222,7 @@ function remoteCSECreationReq (){
 																												// nl : <node> Resource ID (nl == nodelink)
 																													
 	var createRemoteCSE = reqHeader+op+to+fr+ty+ri+passCode+cty+nm+reqBody;
-	client.publish("/oneM2M/req/"+ config.nodeID + "/"+config.AppEUI, createRemoteCSE, {qos : 1}, function(){
+	client.publish("/oneM2M/req/"+ config.mqttClientId() + "/"+config.AppEUI, createRemoteCSE, {qos : 1}, function(){
 		console.log(' ');
 		console.log(colors.yellow('2. Request remoteCSE Creation '));
 		isRunning = "remoteCSE";
@@ -257,7 +256,7 @@ function containerCreationReq (){
 	var reqBody = "<pc><cnt><lbl>con</lbl></cnt></pc></m2m:req>";										
 	
 	var createContainer = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
-	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createContainer, {qos : 1}, function(){
+	client.publish("/oneM2M/req/"+ config.mqttClientId() +"/"+config.AppEUI, createContainer, {qos : 1}, function(){
 		console.log(' ');
 		console.log(colors.yellow('3. Request container Creation'));
 		isRunning = "container";
@@ -290,7 +289,7 @@ function DevResetCreationReq (){
 																												// exe : Trigger Attribute (true/false) (exe == execEnable)
 																												// ext : execute Target means node's Resource ID (ext == exeTarget)
 	var createDevReset = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
-	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createDevReset, {qos : 1}, function(){
+	client.publish("/oneM2M/req/"+ config.mqttClientId() +"/"+config.AppEUI, createDevReset, {qos : 1}, function(){
 		console.log(' ');
 		console.log(colors.yellow('4. Request DevReset(mgmtCmd) Creation'));
 		isRunning = "DevReset";
@@ -323,7 +322,7 @@ function extDevMgmtCreationReq (){
 																												// exe : Trigger Attribute (true/false) (exe == execEnable)
 																												// ext : execute Target means node's Resource ID (ext == exeTarget)
 	var createRepPerChange = reqHeader+op+to+fr+ty+ri+nm+dKey+cty+reqBody;
-	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, createRepPerChange, {qos : 1}, function(){
+	client.publish("/oneM2M/req/"+ config.mqttClientId() +"/"+config.AppEUI, createRepPerChange, {qos : 1}, function(){
 		console.log(' ');
 		console.log(colors.yellow('4. Request extDevMgmt(mgmtCmd) Creation'));
 		isRunning = "extDevMgmt";
@@ -370,7 +369,7 @@ function updateExecInstanceReq (xmlObj){
 	var reqBody = "<pc><exin><exs>3</exs><exr>0</exr></exin></pc></m2m:req>";
 																												// exs : execStatus after update mgmtCmd
 	var updateExecInstance = reqHeader+op+to+fr+ri+dKey+cty+reqBody;
-	client.publish("/oneM2M/req/"+ config.nodeID +"/"+config.AppEUI, updateExecInstance, {qos : 1}, function(){
+	client.publish("/oneM2M/req/"+ config.mqttClientId() +"/"+config.AppEUI, updateExecInstance, {qos : 1}, function(){
 		console.log(colors.red('#####################################'));
 		isRunning = "updateExecInstance";
 	});

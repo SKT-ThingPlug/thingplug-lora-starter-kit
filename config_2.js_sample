@@ -28,8 +28,8 @@ module.exports = {
 
   userID : 'userID',                            	// MQTT버전에서 Broker 접속을 위한 ID, 포털 ID 사용
   mqttClientId : function(){						// MQTT버전에서 Broker 접속을 위한 client ID(ex : ThingPlugID_0002)
-	  var Seq_NUM = '0002';
-	  return this.userID+'_'+Seq_NUM;    	
+	  var POST_FIX = '0002';
+	  return this.userID+'_'+POST_FIX;    	
   },
 
   nodeID : 'Please Type Your Own LTID',         	// Device 구분을 위한 LTID, 디바이스 고유 ID 사용

@@ -48,13 +48,36 @@ function randomInt (low, high) {
 
 var self = this;
 
-var isRunning = 1;
+var isRunning = -1;
 var reqHeader = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\">";
 
 var client = mqtt.connect('mqtt://'+config.TPhost, {
-	username:config.userID,			//user ID to connect with MQTT broker
-	password:config.uKey,			//password to connect with MQTT broker(uKey of portal)
-	clientId:config.mqttClientId(),	//Client ID to connect with MQTT broker
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//		(2016. 12. 04) Client 정책 변경 관련 공지 참조															//
+	//		12월 30일 이전까지는 가이드 기간으로 기존 정책 접속 및 서비스 가능하지만, 이후부터는 기존 정책을 사용하실 수 없습니다.					//
+	//		이로 인해 12월 30일 이전까지 MQTT 클라이언트 접속 시, 기존 ID/PW 없이 접속하셔야 접속 가능하며, 나머지 정책 변경은 동일합니다.			//
+	//		ThingPlug의 MQTT 프로토콜 기반으로 서비스를 테스트하시는 업체 및 개발자 분들께서는 										//
+	//		새로운 정책 적용 시 서비스가 가능하실 수 있도록 미리 개발을 해주시면 감사 드리겠습니다.											//
+	//		자세한 내용은 포털에 올라온 ThingPlug API Document 1.5 버전의 5.3절을 참조해주시면 감사 드리겠습니다						//
+	//		[주요 변경 내용]																						//
+	//		- Broker 접속 ClientID 설정 정책 변경																	//
+	//		- Publish, Subscribe시 Topic 정책 변경																//
+	//		- Subscription 후 Notification을 MQTT로 수신하는 경우													//
+	//																										//
+	// 		참고 : StarterKit MQTT 버전에서는 이로 인해 아래 credential을 임시 주석처리하였으니 참고바랍니다  						//
+	//																										//
+	// username:config.userID,			//user ID to connect with MQTT broker								//
+	// password:config.uKey,			//password to connect with MQTT broker(uKey of portal)				//
+	// clientId:config.mqttClientId(),	//Client ID to connect with MQTT broker								//
+	//																										//
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	clean:true						//clean session
 });
 client.on('connect', function () {

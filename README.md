@@ -303,11 +303,11 @@ module.exports = {
 
 #### Application에서의 제어 요청
 
-실행 후 Application에서 제어를 요청하고, `device.js`가 실행중인 터미널을 살펴보면 ㅁpplication이 보낸 mgmtCmd에 대한 아래와 같은 로그가 보일 것입니다.
+실행 후 Application에서 제어를 요청하고, `device.js`가 실행중인 터미널을 살펴보면 application이 보낸 mgmtCmd에 대한 아래와 같은 로그가 보일 것입니다.
 
 <img src="./media/image17.png" width="714" height="249" />
 
-그림 7-1 – Web App에서 버튼 이용한mgmtCmd 요청
+그림 7-1 – Web App에서 버튼 이용한 mgmtCmd 요청
 
 Application\_web 코드 예제
 

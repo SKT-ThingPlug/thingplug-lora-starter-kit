@@ -159,9 +159,7 @@ module.exports = {
 | 3. container 생성        | 데이터를 저장해둘 container를 생성합니다. 파일시스템의 폴더와 같은 역할을 합니다.                                     | POST                      |
 | 4. mgmtCmd 생성          | 디바이스에서 받아들일 수 있는 제어 명령어를 포함하는 자원을 생성 합니다. LoRa의 경우 predefined된 command가 있습니다. | POST                      |
 | 4-1. DevReset            | LoRa 디바이스 리셋을 위한 mgmtCmd                                                                                     | POST                      |
-| 4-2. RepPerChange        | LoRa 디바이스의 Uplink(주기 보고) 주기 변경을 위한 mgmtCmd                                                            | POST                      |
-| 4-3. RepImmediate        | LoRa 디바이스의 Uplink(주기 보고) 즉시 보고를 위한 mgmtCmd                                                            | POST                      |
-| 4-4. extDevMgmt          | 사용자 지정 mgmtCmd (설정 방법은 API 문서 참조)                                                                       | POST                      |
+| 4-2. extDevMgmt          | 사용자 지정 mgmtCmd (설정 방법은 API 문서 참조)                                                                       | POST                      |
 | 5. Content Instance 생성 | 센서의 측정값을 지정한 컨테이너에 기록합니다.                                                                         | POST                      |
 | 6. execInstance 갱신     | ThingPlug로부터 전달받은 execInstance의 결과를 갱신합니다.                                                            | PUT                       |
 

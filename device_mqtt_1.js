@@ -76,7 +76,7 @@ var client = mqtt.connect('mqtt://'+config.TPhost, {
 client.on('connect', function () {
 	console.log('### mqtt connected ###');
 //---------------------------------------------------Subscribe Declaration-----------------------------------------------------//
-	client.subscribe("/oneM2M/req/+/"+ config.mqttClientId());		
+	client.subscribe("/oneM2M/req_msg/+/"+ config.mqttClientId());		
 	client.subscribe("/oneM2M/resp/"+ config.mqttClientId() +"/+");
 //=============================================================================================================================//
 

@@ -51,7 +51,7 @@ var self = this;
 var isRunning = -1;
 var reqHeader = "<m2m:req xmlns:m2m=\"http://www.onem2m.org/xml/protocols\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.onem2m.org/xml/protocols CDT-requestPrimitive-v1_0_0.xsd\">";
 
-var client = mqtt.connect('mqtt://'+config.TPhost, {
+var client = mqtt.connect('mqtt://mqtt.sktiot.com', {
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
